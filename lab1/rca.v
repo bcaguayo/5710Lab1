@@ -24,7 +24,7 @@ module fulladder(input wire  cin,
                  output wire cout);
 
    wire s_tmp, cout_tmp1, cout_tmp2; 
-   halfadder h0(.a(a), .b(b), .s(s), .cout(cout_tmp1));
+   halfadder h0(.a(a), .b(b), .s(s_tmp), .cout(cout_tmp1));
    halfadder h1(.a(s_tmp), .b(cin), .s(s), .cout(cout_tmp2));
    assign cout = cout_tmp1 | cout_tmp2; 
 endmodule
@@ -37,8 +37,8 @@ module fulladder2(input wire        cin,
                   output wire       cout);
    
    wire cout_tmp; 
-   fulladder a0(.cin(cin), .a(a[0]), .b(b[0]), .s(s[0]), .cout(cout));
-   fulladder a1(.cin(cout_tmp), .a(a[1]), .b(b[1]), .s(s[1]), .cout(cout_tmp));
+   fulladder a0(.cin(cin), .a(a[0]), .b(b[0]), .s(s[0]), .cout(cout_tmp));
+   fulladder a1(.cin(cout_tmp), .a(a[1]), .b(b[1]), .s(s[1]), .cout(cout));
 endmodule
 
 /* 4-bit ripple-carry adder that adds two 4-bit numbers (taken from the
@@ -47,7 +47,13 @@ endmodule
 module rca4(input wire  [7:0] SWITCH,
             output wire [7:0] LED);
    wire cout0; 
-   fulladder2 a0(.cin(1'b1), .a(SWITCH[1:0]), .b(SWITCH[5:4]), .s(LED[1:0]), .cout(cout0));
-   fulladder2 a3(.cin(cout0), .a(SWITCH[3:1]), .b(SWITCH[7:6]), .s(LED[3:2]), .cout());
+   fulladder2 a0(.cin(1'b0), .a(SWITCH[1:0]), .b(SWITCH[5:4]), .s(LED[1:0]), .cout(cout0));
+   /*Warning: Resizing cell port rca4.a3.a from 3 bits to 2 bits
+   Warning: multiple conflicting drivers for rca4.$flatten\a0.\a0.\h1.$xor$rca.v:14$1_Y:
+    port Y[0] of cell $flatten\a0.\a0.\h1.$xor$rca.v:14$1 ($xor)
+    port Y[0] of cell $flatten\a0.\a0.\h0.$xor$rca.v:14$1 ($xor)
+ERROR: Found 17 problems in 'check -assert'.
+Warning: multiple conflicting drivers for rca4.$flatten\a0.\a1.\h1.$xor$rca.v:14$1_Y:*/
+   fulladder2 a3(.cin(cout0), .a(SWITCH[3:2]), .b(SWITCH[7:6]), .s(LED[3:2]), .cout());
    assign LED[7:4] = 4'b0;
 endmodule
