@@ -9,7 +9,7 @@ module lc4_alu(input  wire [15:0] i_insn,
                input wire [15:0]  i_r2data,
                output wire [15:0] o_result);
 
-
+      
       /*** YOUR CODE HERE ***/
 
 endmodule
