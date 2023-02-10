@@ -27,6 +27,7 @@ set_part xc7z020clg484-1
 # only add IP blocks if there are any
 if { [string length [get_file_contents .ip-blocks]] > 0 } {
     read_ip [get_file_contents .ip-blocks]
+    upgrade_ip [get_ips]
 
     # generate synthesis targets for IP blocks, so they will get synthesized by synth_design below
     if { [llength [get_ips]] > 0 } {
@@ -66,7 +67,7 @@ if {[get_file_contents .step] == "synthesis"} {
 }
 
 # Now, run implementation and generate a bitstream
-
+upgrade_ip [get_ips charLib init_sequence_rom pixel_buffer]
 # run place & route
 opt_design
 place_design

@@ -1,4 +1,4 @@
-/* Qiao Xu, Mili Aguayo*/
+/* Qiao Xu, Mili Aguayo */
 
 `timescale 1ns / 1ps
 `default_nettype none
@@ -51,7 +51,8 @@ endmodule // lc4_divider
 /* make check : <verilog syntax error free
 make test : pass all the test cases
 make synth : From verilog abstraction to Gate-level implementation
-make impl: <Wiring, placement and routing */
+make impl: Wiring, placement and routing 
+make zip: submission */
 
 module lc4_divider_one_iter(input  wire [15:0] i_dividend,
                             input  wire [15:0] i_divisor,
