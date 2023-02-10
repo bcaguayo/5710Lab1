@@ -134,7 +134,6 @@ module test_alu;
             end
          end
       end
-
       
       // *******************
       // *** ALU TESTING ***
@@ -146,13 +145,14 @@ module test_alu;
          #2; // wait for inputs to propagate through ALU
          
          tests = tests + 1;
-         lineno = lineno+1;
+         lineno = lineno + 1;
                 
          // write the output to the output trace file
          //if (outputFile) begin
          //   $fdisplay(outputFile, "%b %b %b %b %b", insn, pc, r1data, r2data, actualALUResult);
          //end
          
+
          // print an error if one occurred
          if (actualALUResult !== expectedALUResult) begin
             errors = errors + 1;
@@ -160,12 +160,12 @@ module test_alu;
             // break up all binary values into groups of four bits for readability
             if (errors < `MAX_ERRORS_TO_DISPLAY) begin
                $write("[alu] error at line %04d: ",    lineno);
-               $write("insn = %b %b %b %b, ",    insn[15:12],       insn[11:8],       insn[7:4],       insn[3:0]);
-               $write("pc = %b %b %b %b, ",      pc[15:12],         pc[11:8],         pc[7:4],         pc[3:0]);
-               $write("r1data = %b %b %b %b, ",  r1data[15:12],     r1data[11:8],     r1data[7:4],     r1data[3:0]);
-               $write("r2data = %b %b %b %b, ",  r2data[15:12],     r2data[11:8],     r2data[7:4],     r2data[3:0]);
-               $write("result = %b %b %b %b ",   actualALUResult[15:12],     actualALUResult[11:8],     actualALUResult[7:4],     actualALUResult[3:0]);
-               $write("instead of %b %b %b %b ", expectedALUResult[15:12], expectedALUResult[11:8], expectedALUResult[7:4], expectedALUResult[3:0]); 
+               $write("insn = %H, ",    insn);
+               $write("pc = %H, ",      pc);
+               $write("r1data = %H, ",  r1data);
+               $write("r2data = %H, ",  r2data);
+               $write("result = %H ",   actualALUResult);
+               $write("instead of %H ", expectedALUResult); 
                pinstr(insn); // pretty-print the instruction
                $display("");
             end

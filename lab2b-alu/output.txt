@@ -1,0 +1,23 @@
+/home1/c/cis5710/tools/bin/iverilog
+iverilog -Wall -Iinclude -s test_alu -o a.out lc4_alu.v lc4_divider.v lc4_cla.v testbench_lc4_alu.v
+./a.out
+VCD info: dumpfile alu.vcd opened for output.
+[cla] error a:13604 + b:24193 + cin:1 = sum:    z instead of 37798
+[cla] error a:22115 + b:31501 + cin:1 = sum:    z instead of 53617
+[cla] error a:33893 + b:21010 + cin:1 = sum:    z instead of 54904
+[cla] error a:52493 + b:61814 + cin:1 = sum:    z instead of 48772
+[cla] error a:22509 + b:63372 + cin:1 = sum:    z instead of 20346
+[cla] error a: 9414 + b:33989 + cin:0 = sum:    z instead of 43403
+[cla] error a:63461 + b:29303 + cin:0 = sum:    z instead of 27228
+[cla] error a:56207 + b:27122 + cin:0 = sum:    z instead of 17793
+[cla] error a:31464 + b:20165 + cin:0 = sum:    z instead of 51629
+[cla] error a:10429 + b:22573 + cin:1 = sum:    z instead of 33003
+[cla] error a:25187 + b:34570 + cin:0 = sum:    z instead of 59757
+[cla] error a: 8480 + b:17834 + cin:1 = sum:    z instead of 26315
+[cla] error a:16022 + b:47123 + cin:1 = sum:    z instead of 63146
+[cla] error a:54867 + b:56683 + cin:1 = sum:    z instead of 46015
+[cla] error a:18946 + b:16046 + cin:1 = sum:    z instead of 34993
+Additional       22778 errors NOT printed.
+Simulation finished:       24112 test cases       22793 errors
+<scorePossible>     24112</scorePossible>
+<scoreActual>      1319</scoreActual>
