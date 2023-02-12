@@ -24,6 +24,7 @@ module lc4_regfile #(parameter n = 16)
     input  wire         i_rd_we    // write enable
     );
 
+    
    /***********************
     * TODO YOUR CODE HERE *
     ***********************/

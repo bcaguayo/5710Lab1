@@ -46,11 +46,25 @@ Generating RTLIL representation for module `\gp1'.
 Generating RTLIL representation for module `\gp4'.
 Generating RTLIL representation for module `\cla16'.
 Generating RTLIL representation for module `\gpn'.
+Note: Assuming pure combinatorial block at lc4_cla.v:111.7-115.10 in
+compliance with IEC 62142(E):2005 / IEEE Std. 1364.1(E):2002. Recommending
+use of @* instead of @(...) for better match of synthesis and simulation.
+lc4_cla.v:114: Warning: Range [-1:-1] select out of bounds on signal `\c': Setting 1 LSB bits to undef.
+Note: Assuming pure combinatorial block at lc4_cla.v:111.7-115.10 in
+compliance with IEC 62142(E):2005 / IEEE Std. 1364.1(E):2002. Recommending
+use of @* instead of @(...) for better match of synthesis and simulation.
+Note: Assuming pure combinatorial block at lc4_cla.v:111.7-115.10 in
+compliance with IEC 62142(E):2005 / IEEE Std. 1364.1(E):2002. Recommending
+use of @* instead of @(...) for better match of synthesis and simulation.
+Note: Assuming pure combinatorial block at lc4_cla.v:111.7-115.10 in
+compliance with IEC 62142(E):2005 / IEEE Std. 1364.1(E):2002. Recommending
+use of @* instead of @(...) for better match of synthesis and simulation.
 Successfully finished Verilog frontend.
 
 -- Running command `check; hierarchy -check; flatten; check -assert' --
 
 4. Executing CHECK pass (checking for obvious problems).
+Checking module gpn...
 Checking module cla16...
 Checking module gp4...
 Checking module gp1...
@@ -66,6 +80,7 @@ Found and reported 0 problems.
 <suppressed ~39 debug messages>
 
 7. Executing CHECK pass (checking for obvious problems).
+Checking module gpn...
 Checking module cla16...
 Checking module gp4...
 Checking module gp1...
@@ -75,6 +90,7 @@ Checking module lc4_alu...
 Checking module srlmod...
 Found and reported 0 problems.
 
-End of script. Logfile hash: fc8490718b, CPU: user 0.19s system 0.01s, MEM: 25.07 MB peak
+Warnings: 1 unique messages, 1 total
+End of script. Logfile hash: b93a6f2e5e, CPU: user 0.11s system 0.01s, MEM: 24.97 MB peak
 Yosys 0.9+3855 (git sha1 54294957, clang 7.0.1 -fPIC -Os)
-Time spent: 63% 2x check (0 sec), 19% 3x read_verilog (0 sec), ...
+Time spent: 76% 2x check (0 sec), 14% 1x flatten (0 sec), ...

@@ -94,5 +94,30 @@ module gpn
    input wire  cin,
    output wire gout, pout,
    output wire [N-2:0] cout);
- 
+
+   // Loop
+   genvar i;
+
+   reg p, g;
+   reg [N-1:0] c;
+
+   always @* begin
+      p = pin[0];
+      g = gin[0];
+      c[0] = gin[0] | pin[0] & cin;
+   end
+
+   for (i=1; i<=N-1; i=i+1) begin
+      always @(N) begin
+         p = p & pin[i];
+         g = gin[i] | (pin[i] & g);
+         c[i] = g | (p & c[i-1]);
+      end
+   end
+
+   assign gout = g;
+   assign pout = p;
+   for (i=0; i<=N-2; i=i+1) begin
+      assign cout[i] = c[i];
+   end 
 endmodule
