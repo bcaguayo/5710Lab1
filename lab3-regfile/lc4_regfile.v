@@ -36,12 +36,12 @@ module lc4_regfile #(parameter n = 16)
     */
     Nbit_reg #(n) r0(r0v, ... , clk, i_rd_we, gwe, rst);
     Nbit_reg #(n) r1(r1v, ... , clk, i_rd_we, gwe, rst);
-    Nbit_reg #(n) r2(r1v, ... , clk, i_rd_we, gwe, rst);
-    Nbit_reg #(n) r3(r1v, ... , clk, i_rd_we, gwe, rst);
-    Nbit_reg #(n) r4(r1v, ... , clk, i_rd_we, gwe, rst);
-    Nbit_reg #(n) r5(r1v, ... , clk, i_rd_we, gwe, rst);
-    Nbit_reg #(n) r6(r1v, ... , clk, i_rd_we, gwe, rst);
-    Nbit_reg #(n) r7(r1v, ... , clk, i_rd_we, gwe, rst);
+    Nbit_reg #(n) r2(r2v, ... , clk, i_rd_we, gwe, rst);
+    Nbit_reg #(n) r3(r3v, ... , clk, i_rd_we, gwe, rst);
+    Nbit_reg #(n) r4(r4v, ... , clk, i_rd_we, gwe, rst);
+    Nbit_reg #(n) r5(r5v, ... , clk, i_rd_we, gwe, rst);
+    Nbit_reg #(n) r6(r6v, ... , clk, i_rd_we, gwe, rst);
+    Nbit_reg #(n) r7(r7v, ... , clk, i_rd_we, gwe, rst);
 
     assign o_rs_data = (i_rs == 3'b000) ? r0v : 
                        (i_rs == 3'b001) ? r1v : 
