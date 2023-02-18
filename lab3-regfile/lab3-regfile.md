@@ -10,7 +10,7 @@ long.
 ## Your Task
 
 The skeleton `lc4_regfile.v` includes the module declaration and a
-commented list of all parameters. You may add any modules you wish,
+commented list of all parameters. You may add any modules you wish, 
 but you must add them to `lc4_regfile.v` to keep our grading scripts
 happy.
 
