@@ -106,7 +106,10 @@ module lc4_alu(input wire [15:0]  i_insn,
       wire [15:0] trap = {8'h80, i_insn[7:0]};
 
       /* CLA Single Instance
+      Branch: clam cb(.inA(i_pc), .inB(s_ext), .ci_n(16'd1), .a_sum(b_out));
       Arith: clam ca(.inA(reg_1), .inB(reg_2), .ci_n(c_in), .a_sum(s_sum));
+      LDST: clam ca(.inA(reg_1), .inB(s_exdr), .ci_n(16'd0), .a_sum(ldstr));
+      JMP: clam cj(.inA(i_pc), .inB(im11b), .ci_n(16'd1), .a_sum(jmp));
       */
 
       wire [15:0] ain = (ins15_12 == 4'h0) ? i_pc : 
