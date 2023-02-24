@@ -68,6 +68,51 @@ module lc4_processor
     * TODO: INSERT YOUR CODE HERE *
     *******************************/
 
+   // Decoder
+   wire [2:0] r1sel, r2sel, wsel;
+   wire r1re, r2re, regfile_we, nzp_we, select_pc_plus_one, is_load, is_store, is_branch, is_control_insn;
+
+   lc4_decoder decoder(.insn(i_cur_insn), .r1sel(r1sel), .r1re(r1re), .r2sel(r2sel), .r2re(r2re), .wsel(wsel), .regfile_we(regfile_we),.nzp_we(nzp_we), .select_pc_plus_one(select_pc_plus_one), .is_load(is_load), .is_store(is_store), .is_branch(is_branch), .is_control_insn(is_control_insn));
+
+   //start with fetch: 
+   //PC+1
+   wire [15:0] PC_increment;
+
+   cla16 cla_pc(.a(pc),.b(16'd0),.cin(1'b1),.sum(PC_increment));
+
+
+
+   //Add data into the register// how to use r1re? r2re? mux??
+   wire [15:0] o_Rsdata, o_Rtdata, i_wdata;
+   wire r1_select,r2_select;
+
+   //assign [2:0] r1_select = (r1re==16'd1)? r1sel:16'd0;
+   //assign [2:0] r2_select = (r2re==16'd1)? r2sel:16'd0;
+
+   lc4_regfile #(.n(16)) register(.clk(clk),.rst(rst),.gwe(gwe),.i_rs(r1sel),.o_rs_data(o_Rsdata),.i_rt(r2sel),.o_rt_data(o_Rtdata),.i_rd(wsel),.i_wdata(i_wdata),.i_rd_we(regfile_we));
+
+
+
+   //alu part
+   wire[15:0] o_ALU;
+
+   lc4_alu alu (.i_insn(i_cur_insn), .i_pc(pc), .i_r1data(o_Rsdata), .i_r2data(o_Rtdata), .o_result(o_ALU));
+
+
+
+   //memory part
+   assign o_dmem_we = is_store;
+   assign o_dmem_towrite = o_Rtdata; // DMwe=is_sw on lecture
+   assign o_dmem_addr = (is_load | is_store) ? o_ALU : 16'd0;
+
+
+   //data back to register input
+   wire[15:0] regInputMux;
+   wire[15:0] selected_from_DM = (is_store == 16'd1) ? i_cur_dmem_data : o_ALU;
+   assign regInputMux = (select_pc_plus_one == 16'd1) ? PC_increment : selected_from_DM;
+   assign i_wdata = regInputMux;
+
+
 
 
    /* Add $display(...) calls in the always block below to
@@ -86,6 +131,7 @@ module lc4_processor
     */
 `ifndef NDEBUG
    always @(posedge gwe) begin
+   //$display(...);
       // $display("%d %h %h %h %h %h", $time, f_pc, d_pc, e_pc, m_pc, test_cur_pc);
       // if (o_dmem_we)
       //   $display("%d STORE %h <= %h", $time, o_dmem_addr, o_dmem_towrite);
@@ -128,7 +174,7 @@ module lc4_processor
       // The Objects pane will update to display the wires
       // in that module.
 
-      // $display();
+      $display(...);
    end
 `endif
 endmodule
