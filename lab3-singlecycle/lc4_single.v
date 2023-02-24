@@ -21,7 +21,6 @@ module lc4_processor
    (input  wire        clk,                // Main clock
     input  wire        rst,                // Global reset
     input  wire        gwe,                // Global we for single-step clock
-   
     output wire [15:0] o_cur_pc,           // Address to read from instruction memory
     input  wire [15:0] i_cur_insn,         // Output of instruction memory
     output wire [15:0] o_dmem_addr,        // Address to read/write from/to data memory; SET TO 0x0000 FOR NON LOAD/STORE INSNS
@@ -64,7 +63,6 @@ module lc4_processor
    // pc wires attached to the PC register's ports
    wire [15:0]   pc;      // Current program counter (read out from pc_reg)
    wire [15:0]   next_pc; // Next program counter (you compute this and feed it into next_pc) 
-   // What's this ^^
 
    // Program counter register, starts at 8200h at bootup
    Nbit_reg #(16, 16'h8200) pc_reg (.in(next_pc), .out(pc), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
@@ -82,44 +80,36 @@ module lc4_processor
 
    lc4_decoder decoder(.insn(i_cur_insn), .r1sel(r1sel), .r1re(r1re), .r2sel(r2sel), .r2re(r2re), .wsel(wsel), .regfile_we(regfile_we),.nzp_we(nzp_we), .select_pc_plus_one(select_pc_plus_one), .is_load(is_load), .is_store(is_store), .is_branch(is_branch), .is_control_insn(is_control_insn));
 
-   //start with fetch: 
-   //PC+1
-   wire [15:0] PC_increment;
-
-   cla16 cla_pc(.a(pc),.b(16'd0),.cin(1'b1),.sum(PC_increment));
-
-   assign o_cur_pc = PC_increment;
-   assign next_pc = o_cur_pc;       // .\next_pc [3] is used but has no driver
+   // Fetch: 
+   // PC+1
+   cla16 cla_pc(.a(pc),.b(16'd0),.cin(1'b1),.sum(next_pc));
+   assign o_cur_pc = pc;
 
    //Add data into the register// how to use r1re? r2re? mux??
    wire [15:0] o_Rsdata, o_Rtdata, i_wdata;
    wire r1_select,r2_select;
 
-   //assign [2:0] r1_select = (r1re==16'd1)? r1sel:16'd0;
-   //assign [2:0] r2_select = (r2re==16'd1)? r2sel:16'd0;
-
    lc4_regfile #(.n(16)) register(.clk(clk),.rst(rst),.gwe(gwe),.i_rs(r1sel),.o_rs_data(o_Rsdata),.i_rt(r2sel),.o_rt_data(o_Rtdata),.i_rd(wsel),.i_wdata(i_wdata),.i_rd_we(regfile_we));
-
-
 
    // alu part
    wire[15:0] o_ALU;
    lc4_alu alu (.i_insn(i_cur_insn), .i_pc(pc), .i_r1data(o_Rsdata), .i_r2data(o_Rtdata), .o_result(o_ALU));
 
-   // Write to the NZP 
-
-
    // memory part
    assign o_dmem_we = is_store;
-   assign o_dmem_towrite = o_Rtdata; // DMwe=is_sw on lecture
+   assign o_dmem_towrite = is_store ? o_ALU : 16'd0; // DMwe=is_sw on lecture
    assign o_dmem_addr = (is_load | is_store) ? o_ALU : 16'd0;
-
 
    // data back to register input
    wire[15:0] regInputMux;
    wire[15:0] selected_from_DM = (is_store == 16'd1) ? i_cur_dmem_data : o_ALU;
-   assign regInputMux = (select_pc_plus_one == 16'd1) ? PC_increment : selected_from_DM;
+   assign regInputMux = (select_pc_plus_one == 16'd1) ? next_pc : selected_from_DM;
    assign i_wdata = regInputMux;
+
+   // NZP Register, starts at 0000h at bootup
+   wire [2:0] curr_nzp = (i_wdata[15] == 1'b1) ? 3'b100 :
+                         ($signed(i_wdata) == 16'h0000) ? 3'b010 : 3'b001;
+   Nbit_reg #(16, 3'b000) nzp_reg (.in(curr_nzp), .clk(clk), .we(nzp_we), .gwe(gwe), .rst(rst));
 
    // Testbench signals
 
@@ -128,14 +118,12 @@ module lc4_processor
    assign test_cur_insn       = i_cur_insn;     // Testbench: instruction bits
    assign test_regfile_we     = regfile_we;     // Testbench: register file write enable
    assign test_regfile_wsel   = wsel;         // Testbench: which register to write in the register file 
-   assign test_regfile_data   = 16'd0;         // Testbench: value to write into the register file
+   assign test_regfile_data   = i_wdata;         // Testbench: value to write into the register file
    assign test_nzp_we         = nzp_we;         // Testbench: NZP condition codes write enable
-   assign test_nzp_new_bits   = 3'b000;         // Testbench: value to write to NZP bits
+   assign test_nzp_new_bits   = curr_nzp;         // Testbench: value to write to NZP bits
    assign test_dmem_we        = o_dmem_we;      // Testbench: data memory write enable
    assign test_dmem_addr      = o_dmem_addr;    // Testbench: address to read/write memory
    assign test_dmem_data      = o_dmem_towrite; // Testbench: value read/writen from/to memory
-
-
 
 
    /* Add $display(...) calls in the always block below to

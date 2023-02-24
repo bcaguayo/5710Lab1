@@ -164,21 +164,28 @@ Parameter 1 (\n) = 16
 Found cached RTLIL representation for module `$paramod\Nbit_reg\n=16'.
 Parameter 1 (\n) = 16
 Found cached RTLIL representation for module `$paramod\Nbit_reg\n=16'.
+Parameter 1 (\n) = 16
+Parameter 2 (\r) = 3'000
+
+14.2. Executing AST frontend in derive mode using pre-parsed AST for module `\Nbit_reg'.
+Parameter 1 (\n) = 16
+Parameter 2 (\r) = 3'000
+Generating RTLIL representation for module `$paramod\Nbit_reg\n=16\r=3'000'.
 Parameter \n = 16
 
-14.2. Executing AST frontend in derive mode using pre-parsed AST for module `\lc4_regfile'.
+14.3. Executing AST frontend in derive mode using pre-parsed AST for module `\lc4_regfile'.
 Parameter \n = 16
 Generating RTLIL representation for module `$paramod\lc4_regfile\n=16'.
 Parameter 1 (\n) = 16
 Parameter 2 (\r) = 16'1000001000000000
 
-14.3. Executing AST frontend in derive mode using pre-parsed AST for module `\Nbit_reg'.
+14.4. Executing AST frontend in derive mode using pre-parsed AST for module `\Nbit_reg'.
 Parameter 1 (\n) = 16
 Parameter 2 (\r) = 16'1000001000000000
 Generating RTLIL representation for module `$paramod\Nbit_reg\n=16\r=16'1000001000000000'.
 Parameter 1 (\n) = 16
 
-14.4. Executing AST frontend in derive mode using pre-parsed AST for module `\delay_eight_cycles'.
+14.5. Executing AST frontend in derive mode using pre-parsed AST for module `\delay_eight_cycles'.
 Parameter 1 (\n) = 16
 Generating RTLIL representation for module `$paramod\delay_eight_cycles\n=16'.
 Parameter 1 (\n) = 16
@@ -186,7 +193,7 @@ Found cached RTLIL representation for module `$paramod\delay_eight_cycles\n=16'.
 Parameter 1 (\n) = 16
 Parameter 2 (\r) = 16'0000000000000000
 
-14.5. Executing AST frontend in derive mode using pre-parsed AST for module `\Nbit_reg'.
+14.6. Executing AST frontend in derive mode using pre-parsed AST for module `\Nbit_reg'.
 Parameter 1 (\n) = 16
 Parameter 2 (\r) = 16'0000000000000000
 Generating RTLIL representation for module `$paramod\Nbit_reg\n=16\r=16'0000000000000000'.
@@ -195,7 +202,7 @@ Parameter 2 (\r) = 16'0000000000000000
 Found cached RTLIL representation for module `$paramod\Nbit_reg\n=16\r=16'0000000000000000'.
 Parameter 1 (\n) = 1
 
-14.6. Executing AST frontend in derive mode using pre-parsed AST for module `\Nbit_reg'.
+14.7. Executing AST frontend in derive mode using pre-parsed AST for module `\Nbit_reg'.
 Parameter 1 (\n) = 1
 Generating RTLIL representation for module `$paramod\Nbit_reg\n=1'.
 Parameter 1 (\n) = 1
@@ -214,7 +221,7 @@ Parameter 1 (\n) = 1
 Found cached RTLIL representation for module `$paramod\Nbit_reg\n=1'.
 Parameter 1 (\n) = 2
 
-14.7. Executing AST frontend in derive mode using pre-parsed AST for module `\count'.
+14.8. Executing AST frontend in derive mode using pre-parsed AST for module `\count'.
 Parameter 1 (\n) = 2
 Generating RTLIL representation for module `$paramod\count\n=2'.
 Parameter 1 (\n) = 16
@@ -249,9 +256,10 @@ Parameter 1 (\n) = 16
 Found cached RTLIL representation for module `$paramod\Nbit_reg\n=16'.
 Parameter 1 (\n) = 16
 Found cached RTLIL representation for module `$paramod\Nbit_reg\n=16'.
+Warning: Resizing cell port lc4_processor.nzp_reg.in from 3 bits to 16 bits.
 
 15. Executing FLATTEN pass (flatten design).
-<suppressed ~82 debug messages>
+<suppressed ~83 debug messages>
 
 16. Executing CHECK pass (checking for obvious problems).
 Checking module $paramod\count\n=2...
@@ -260,6 +268,7 @@ Checking module $paramod\Nbit_reg\n=16\r=16'0000000000000000...
 Checking module $paramod\delay_eight_cycles\n=16...
 Checking module $paramod\Nbit_reg\n=16\r=16'1000001000000000...
 Checking module $paramod\lc4_regfile\n=16...
+Checking module $paramod\Nbit_reg\n=16\r=3'000...
 Checking module $paramod\Nbit_reg\n=16...
 Checking module bram...
 Checking module delay_eight_cycles...
@@ -280,7 +289,7 @@ Checking module lc4_alu...
 Checking module srlmod...
 Found and reported 0 problems.
 
-Warnings: 1 unique messages, 1 total
-End of script. Logfile hash: a9400e4880, CPU: user 0.34s system 0.00s, MEM: 42.77 MB peak
+Warnings: 2 unique messages, 2 total
+End of script. Logfile hash: a693d7e3aa, CPU: user 0.34s system 0.00s, MEM: 42.91 MB peak
 Yosys 0.9+3855 (git sha1 54294957, clang 7.0.1 -fPIC -Os)
-Time spent: 63% 2x check (0 sec), 20% 12x read_verilog (0 sec), ...
+Time spent: 64% 2x check (0 sec), 19% 12x read_verilog (0 sec), ...
