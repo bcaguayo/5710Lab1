@@ -5,6 +5,13 @@
  *
  */
 
+/*
+TODO: 
+Write NZP
+Some PC Logic
+Add data into the register
+*/
+
 `timescale 1ns / 1ps
 
 // disable implicit wire declaration
@@ -56,7 +63,8 @@ module lc4_processor
 
    // pc wires attached to the PC register's ports
    wire [15:0]   pc;      // Current program counter (read out from pc_reg)
-   wire [15:0]   next_pc; // Next program counter (you compute this and feed it into next_pc)
+   wire [15:0]   next_pc; // Next program counter (you compute this and feed it into next_pc) 
+   // What's this ^^
 
    // Program counter register, starts at 8200h at bootup
    Nbit_reg #(16, 16'h8200) pc_reg (.in(next_pc), .out(pc), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
@@ -80,7 +88,8 @@ module lc4_processor
 
    cla16 cla_pc(.a(pc),.b(16'd0),.cin(1'b1),.sum(PC_increment));
 
-
+   assign o_cur_pc = PC_increment;
+   assign next_pc = o_cur_pc;       // .\next_pc [3] is used but has no driver
 
    //Add data into the register// how to use r1re? r2re? mux??
    wire [15:0] o_Rsdata, o_Rtdata, i_wdata;
@@ -93,24 +102,38 @@ module lc4_processor
 
 
 
-   //alu part
+   // alu part
    wire[15:0] o_ALU;
-
    lc4_alu alu (.i_insn(i_cur_insn), .i_pc(pc), .i_r1data(o_Rsdata), .i_r2data(o_Rtdata), .o_result(o_ALU));
 
+   // Write to the NZP 
 
 
-   //memory part
+   // memory part
    assign o_dmem_we = is_store;
    assign o_dmem_towrite = o_Rtdata; // DMwe=is_sw on lecture
    assign o_dmem_addr = (is_load | is_store) ? o_ALU : 16'd0;
 
 
-   //data back to register input
+   // data back to register input
    wire[15:0] regInputMux;
    wire[15:0] selected_from_DM = (is_store == 16'd1) ? i_cur_dmem_data : o_ALU;
    assign regInputMux = (select_pc_plus_one == 16'd1) ? PC_increment : selected_from_DM;
    assign i_wdata = regInputMux;
+
+   // Testbench signals
+
+   assign test_stall          = 2'b00;    // Testbench: is this a stall cycle? (don't compare the test values)
+   assign test_cur_pc         = pc;       // Testbench: program counter
+   assign test_cur_insn       = i_cur_insn;     // Testbench: instruction bits
+   assign test_regfile_we     = regfile_we;     // Testbench: register file write enable
+   assign test_regfile_wsel   = wsel;         // Testbench: which register to write in the register file 
+   assign test_regfile_data   = 16'd0;         // Testbench: value to write into the register file
+   assign test_nzp_we         = nzp_we;         // Testbench: NZP condition codes write enable
+   assign test_nzp_new_bits   = 3'b000;         // Testbench: value to write to NZP bits
+   assign test_dmem_we        = o_dmem_we;      // Testbench: data memory write enable
+   assign test_dmem_addr      = o_dmem_addr;    // Testbench: address to read/write memory
+   assign test_dmem_data      = o_dmem_towrite; // Testbench: value read/writen from/to memory
 
 
 
@@ -174,7 +197,7 @@ module lc4_processor
       // The Objects pane will update to display the wires
       // in that module.
 
-      $display(...);
+      // $display(...);
    end
 `endif
 endmodule

@@ -21,7 +21,9 @@ module lc4_regfile #(parameter n = 16)
     output wire [n-1:0] o_rt_data, // rt contents
     input  wire [  2:0] i_rd,      // rd selector
     input  wire [n-1:0] i_wdata,   // data to write
-    input  wire         i_rd_we    // write enable
+    input  wire         i_rd_we,   // write enable
+    input  wire [  2:0] nzp_in,    // nzp to write
+    output wire [  2:0] nzp_reg    // write enable
     );
 
     // Register Values
@@ -75,6 +77,8 @@ module lc4_regfile #(parameter n = 16)
                        (i_rt == 3'b101) ? r5v : 
                        (i_rt == 3'b110) ? r6v : r7v; 
 
+    // Store NZP bits
+    assign nzp_reg = nzp_in;
 
     // assign out based on condition 
     // ? : not mux
