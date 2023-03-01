@@ -80,8 +80,7 @@ module lc4_processor
 
    lc4_decoder decoder(.insn(i_cur_insn), .r1sel(r1sel), .r1re(r1re), .r2sel(r2sel), .r2re(r2re), .wsel(wsel), .regfile_we(regfile_we),.nzp_we(nzp_we), .select_pc_plus_one(select_pc_plus_one), .is_load(is_load), .is_store(is_store), .is_branch(is_branch), .is_control_insn(is_control_insn));
 
-   // Fetch: 
-   // PC+1
+   // Fetch: PC+1
    cla16 cla_pc(.a(pc),.b(16'd0),.cin(1'b1),.sum(next_pc));
    assign o_cur_pc = pc;
 
