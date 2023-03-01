@@ -84,22 +84,22 @@ module lc4_processor
    cla16 cla_pc(.a(pc),.b(16'd0),.cin(1'b1),.sum(next_pc));
    assign o_cur_pc = pc;
 
-   //Add data into the register// how to use r1re? r2re? mux??
+   // Data Decode
    wire [15:0] o_Rsdata, o_Rtdata, i_wdata;
    wire r1_select,r2_select;
 
    lc4_regfile #(.n(16)) register(.clk(clk),.rst(rst),.gwe(gwe),.i_rs(r1sel),.o_rs_data(o_Rsdata),.i_rt(r2sel),.o_rt_data(o_Rtdata),.i_rd(wsel),.i_wdata(i_wdata),.i_rd_we(regfile_we));
 
-   // alu part
+   // ALU
    wire[15:0] o_ALU;
    lc4_alu alu (.i_insn(i_cur_insn), .i_pc(pc), .i_r1data(o_Rsdata), .i_r2data(o_Rtdata), .o_result(o_ALU));
 
-   // memory part
+   // Memory
    assign o_dmem_we = is_store;
    assign o_dmem_towrite = is_store ? o_ALU : 16'd0; // DMwe=is_sw on lecture
    assign o_dmem_addr = (is_load | is_store) ? o_ALU : 16'd0;
 
-   // data back to register input
+   // Writeback
    wire[15:0] regInputMux;
    wire[15:0] selected_from_DM = (is_store == 16'd1) ? i_cur_dmem_data : o_ALU;
    assign regInputMux = (select_pc_plus_one == 16'd1) ? next_pc : selected_from_DM;
@@ -110,8 +110,55 @@ module lc4_processor
                          ($signed(i_wdata) == 16'h0000) ? 3'b010 : 3'b001;
    Nbit_reg #(16, 3'b000) nzp_reg (.in(curr_nzp), .clk(clk), .we(nzp_we), .gwe(gwe), .rst(rst));
 
-   // Testbench signals
+   // Branch Unit
+   // WIP: CMP? 
 
+   // Branch ------------------------------------------------------------------
+   // HOW DO I ACCESS R7
+   wire[15:0] pcInputMux;
+   wire[15:0] pc_plus_one;
+   wire[15:0] pc_ctrl_insn;
+
+   // Compute PC Plus One
+   wire [15:0] s_ext_br = {{7{i_cur_insn[8]}}, i_cur_insn[8:0]};
+   // If Branch that isn't NOP, add IMM9
+   wire [15:0] b_in = (is_branch & i_cur_insn[11:9] != 3'b000)? s_ext : 16'd0;
+   cla16 cla_pc(.a(pc),.b(b_in),.cin(1'b1),.sum(pc_plus_one));
+   
+   // JSR & JSRR  -------------------------------------------------------------
+   wire [15:0] s_ext_jsr = {i_cur_insn[10], i_cur_insn[10:0], 4'b0}; // JSR Sign Ext
+   wire[15:0] pc_jsr = (pc & 16'h8000) | s_ext_jsr;   // JSR PC
+   wire[15:0] pc_jsrr = (i_cur_insn[11] == 1'b1) pc_jsr : o_Rsdata;   // JSR or JSRR
+
+   // JMP & JMPR  -------------------------------------------------------------
+   wire[15:0] pc_jmp;
+   wire [15:0] s_ext_jmp = {{5{i_cur_insn[10]}}, i_cur_insn[10:0]};     // JMP Sign Ext
+   cla16 cla_pc(.a(pc),.b(s_ext_jmp),.cin(1'b1),.sum(pc_jmp));       // JMP
+   wire[15:0] pc_jmpr = (i_cur_insn[11] == 1'b1) pc_jmp : o_Rsdata;     // JMP or JMPR
+
+   // TRAP  -------------------------------------------------------------------
+   wire[15:0] pc_trap = {8'h80, i_cur_insn[7:0]};
+
+   // RTI: Do we need the Priviledge Bit?   -----------------------------------
+   // Get R7 from Regfile How?
+   wire[15:0] pc_rti = 16'd0; // Assign R7
+
+   assign pc_ctrl_insn = (i_cur_insn[15:12] == 4'b0100) pc_jsrr :
+                         (i_cur_insn[15:12] == 4'b1100) pc_jmpr :
+                         (i_cur_insn[15:12] == 4'b1111) pc_trap : pc_rti;
+
+   assign next_pc = is_control_insn? pc_ctrl_insn : pc_plus_one;
+   assign o_cur_pc = pc;
+   
+   /*
+   Questions I still have:
+   Do I need CMP?
+   How to access R7
+   How to access the Privilege Bit and assign it. Does it go on its separate register
+   Do I need to do anything as signed???
+   */
+
+   // Testbench signals
    assign test_stall          = 2'b00;    // Testbench: is this a stall cycle? (don't compare the test values)
    assign test_cur_pc         = pc;       // Testbench: program counter
    assign test_cur_insn       = i_cur_insn;     // Testbench: instruction bits
