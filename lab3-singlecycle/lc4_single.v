@@ -12,6 +12,11 @@ Some PC Logic
 Add data into the register
 */
 
+/*
+to make zip
+touch zip file list
+*/
+
 `timescale 1ns / 1ps
 
 // disable implicit wire declaration
@@ -77,18 +82,26 @@ module lc4_processor
    // Decoder
    wire [2:0] r1sel, r2sel, wsel;
    wire r1re, r2re, regfile_we, nzp_we, select_pc_plus_one, is_load, is_store, is_branch, is_control_insn;
-
    lc4_decoder decoder(.insn(i_cur_insn), .r1sel(r1sel), .r1re(r1re), .r2sel(r2sel), .r2re(r2re), .wsel(wsel), .regfile_we(regfile_we),.nzp_we(nzp_we), .select_pc_plus_one(select_pc_plus_one), .is_load(is_load), .is_store(is_store), .is_branch(is_branch), .is_control_insn(is_control_insn));
 
    // Fetch: PC+1
-   cla16 cla_pc(.a(pc),.b(16'd0),.cin(1'b1),.sum(next_pc));
+   // cla16 cla_pc(.a(pc),.b(16'd0),.cin(1'b1),.sum(next_pc));
    assign o_cur_pc = pc;
 
    // Data Decode
    wire [15:0] o_Rsdata, o_Rtdata, i_wdata;
-   wire r1_select,r2_select;
 
-   lc4_regfile #(.n(16)) register(.clk(clk),.rst(rst),.gwe(gwe),.i_rs(r1sel),.o_rs_data(o_Rsdata),.i_rt(r2sel),.o_rt_data(o_Rtdata),.i_rd(wsel),.i_wdata(i_wdata),.i_rd_we(regfile_we));
+   // Ctrl_Insn: JSR, JSRR, TRAP
+   // R7 = PC + 1: i_rd_we enable(1), i_rd/wsel = 111, i_wdata pc+1
+   wire irdwe = (i_cur_insn[15:12] == 4'b0100 | i_cur_insn[15:12] == 4'b1111) ? 1'b1 : regfile_we;
+   wire [2:0] ird = (i_cur_insn[15:12] == 4'b0100 | i_cur_insn[15:12] == 4'b1111) ? 3'b111 : wsel;
+   wire [15:0] iwdata = (i_cur_insn[15:12] == 4'b0100 | i_cur_insn[15:12] == 4'b1111) ? pc_plus_one : i_wdata;
+
+   // Ctrl_Insn: RTI | PC = R7
+   wire r1select = (i_cur_insn[15:12] == 4'b1000) ? 3'b111 : r1sel;
+
+   // wsel, regfile_we, i_wdata
+   lc4_regfile #(.n(16)) register(.clk(clk),.rst(rst),.gwe(gwe),.i_rs(r1select),.o_rs_data(o_Rsdata),.i_rt(r2sel),.o_rt_data(o_Rtdata),.i_rd(ird),.i_wdata(iwdata),.i_rd_we(irdwe));
 
    // ALU
    wire[15:0] o_ALU;
@@ -108,53 +121,59 @@ module lc4_processor
    // NZP Register, starts at 0000h at bootup
    wire [2:0] curr_nzp = (i_wdata[15] == 1'b1) ? 3'b100 :
                          ($signed(i_wdata) == 16'h0000) ? 3'b010 : 3'b001;
-   Nbit_reg #(16, 3'b000) nzp_reg (.in(curr_nzp), .clk(clk), .we(nzp_we), .gwe(gwe), .rst(rst));
+   // if cmp get alu result
+   // put in nzp
+
+   Nbit_reg #(3, 3'b000) nzp_reg (.in(curr_nzp), .clk(clk), .we(nzp_we), .gwe(gwe), .rst(rst));
 
    // Branch Unit
-   // WIP: CMP? 
+   // CMP, CMPU, CMPI, CMPIU -------------------------------------------------- 
+
+
+   // Test cases: test_alu, test_br, test_ld_br, test_mem, test_all
 
    // Branch ------------------------------------------------------------------
    // HOW DO I ACCESS R7
-   wire[15:0] pcInputMux;
-   wire[15:0] pc_plus_one;
-   wire[15:0] pc_ctrl_insn;
+   wire [15:0] pcInputMux;
+   wire [15:0] pc_plus_one;
+   wire [15:0] pc_ctrl_insn;
 
    // Compute PC Plus One
    wire [15:0] s_ext_br = {{7{i_cur_insn[8]}}, i_cur_insn[8:0]};
    // If Branch that isn't NOP, add IMM9
-   wire [15:0] b_in = (is_branch & i_cur_insn[11:9] != 3'b000)? s_ext : 16'd0;
-   cla16 cla_pc(.a(pc),.b(b_in),.cin(1'b1),.sum(pc_plus_one));
+   wire [15:0] b_in = (is_branch & i_cur_insn[11:9] != 3'b000)? s_ext_br : 16'd0;
+   cla16 cla_branch(.a(pc),.b(b_in),.cin(1'b1),.sum(pc_plus_one));
+   
+   // Branch is taken check insn[11:9]
+   wire take_br = i_cur_insn[11:9];
    
    // JSR & JSRR  -------------------------------------------------------------
    wire [15:0] s_ext_jsr = {i_cur_insn[10], i_cur_insn[10:0], 4'b0}; // JSR Sign Ext
-   wire[15:0] pc_jsr = (pc & 16'h8000) | s_ext_jsr;   // JSR PC
-   wire[15:0] pc_jsrr = (i_cur_insn[11] == 1'b1) pc_jsr : o_Rsdata;   // JSR or JSRR
+   wire [15:0] pc_jsr = (pc & 16'h8000) | s_ext_jsr;   // JSR PC
+   wire [15:0] pc_jsrr = (i_cur_insn[11] == 1'b1) ? pc_jsr : o_Rsdata;   // JSR or JSRR
 
    // JMP & JMPR  -------------------------------------------------------------
-   wire[15:0] pc_jmp;
+   wire [15:0] pc_jmp;
    wire [15:0] s_ext_jmp = {{5{i_cur_insn[10]}}, i_cur_insn[10:0]};     // JMP Sign Ext
-   cla16 cla_pc(.a(pc),.b(s_ext_jmp),.cin(1'b1),.sum(pc_jmp));       // JMP
-   wire[15:0] pc_jmpr = (i_cur_insn[11] == 1'b1) pc_jmp : o_Rsdata;     // JMP or JMPR
+   cla16 cla_jmp(.a(pc),.b(s_ext_jmp),.cin(1'b1),.sum(pc_jmp));       // JMP
+   wire [15:0] pc_jmpr = (i_cur_insn[11] == 1'b1) ? pc_jmp : o_Rsdata;     // JMP or JMPR
 
    // TRAP  -------------------------------------------------------------------
    wire[15:0] pc_trap = {8'h80, i_cur_insn[7:0]};
 
-   // RTI: Do we need the Priviledge Bit?   -----------------------------------
-   // Get R7 from Regfile How?
-   wire[15:0] pc_rti = 16'd0; // Assign R7
+   // RTI  --------------------------------------------------------------------
+   wire[15:0] pc_rti = o_Rsdata; // Selected to be Rs above
 
-   assign pc_ctrl_insn = (i_cur_insn[15:12] == 4'b0100) pc_jsrr :
-                         (i_cur_insn[15:12] == 4'b1100) pc_jmpr :
-                         (i_cur_insn[15:12] == 4'b1111) pc_trap : pc_rti;
+   assign pc_ctrl_insn = (i_cur_insn[15:12] == 4'b0100) ? pc_jsrr :
+                         (i_cur_insn[15:12] == 4'b1100) ? pc_jmpr :
+                         (i_cur_insn[15:12] == 4'b1111) ? pc_trap : pc_rti;
 
    assign next_pc = is_control_insn? pc_ctrl_insn : pc_plus_one;
-   assign o_cur_pc = pc;
-   
    /*
    Questions I still have:
-   Do I need CMP?
-   How to access R7
-   How to access the Privilege Bit and assign it. Does it go on its separate register
+   Do I need CMP? YES
+   How to access R7?
+   How to access the Privilege Bit and assign it. Does it go on its separate register NO
    Do I need to do anything as signed???
    */
 
