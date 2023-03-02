@@ -67,7 +67,7 @@ if {[get_file_contents .step] == "synthesis"} {
 }
 
 # Now, run implementation and generate a bitstream
-upgrade_ip [get_ips charLib init_sequence_rom pixel_buffer]
+# upgrade_ip [get_ips charLib init_sequence_rom pixel_buffer]
 # run place & route
 opt_design
 place_design

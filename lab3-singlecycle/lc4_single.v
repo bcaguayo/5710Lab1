@@ -92,13 +92,14 @@ module lc4_processor
    wire [15:0] o_Rsdata, o_Rtdata, i_wdata;
 
    // Ctrl_Insn: JSR, JSRR, TRAP
+
    // R7 = PC + 1: i_rd_we enable(1), i_rd/wsel = 111, i_wdata pc+1
-   wire irdwe = (i_cur_insn[15:12] == 4'b0100 | i_cur_insn[15:12] == 4'b1111) ? 1'b1 : regfile_we;
-   wire [2:0] ird = (i_cur_insn[15:12] == 4'b0100 | i_cur_insn[15:12] == 4'b1111) ? 3'b111 : wsel;
-   wire [15:0] iwdata = (i_cur_insn[15:12] == 4'b0100 | i_cur_insn[15:12] == 4'b1111) ? pc_plus_one : i_wdata;
+   wire irdwe = (i_cur_insn[15:12] == 4'h4 | i_cur_insn[15:12] == 4'hF) ? 1'b1 : regfile_we;
+   wire [2:0] ird = (i_cur_insn[15:12] == 4'h4 | i_cur_insn[15:12] == 4'hF) ? 3'b111 : wsel;
+   wire [15:0] iwdata = (i_cur_insn[15:12] == 4'h4 | i_cur_insn[15:12] == 4'hF) ? pc_plus_one : i_wdata;
 
    // Ctrl_Insn: RTI | PC = R7
-   wire r1select = (i_cur_insn[15:12] == 4'b1000) ? 3'b111 : r1sel;
+   wire [2:0] r1select = (i_cur_insn[15:12] == 4'b1000) ? 3'b111 : r1sel;
 
    // wsel, regfile_we, i_wdata
    lc4_regfile #(.n(16)) register(.clk(clk),.rst(rst),.gwe(gwe),.i_rs(r1select),.o_rs_data(o_Rsdata),.i_rt(r2sel),.o_rt_data(o_Rtdata),.i_rd(ird),.i_wdata(iwdata),.i_rd_we(irdwe));
@@ -109,27 +110,34 @@ module lc4_processor
 
    // Memory
    assign o_dmem_we = is_store;
-   assign o_dmem_towrite = is_store ? o_ALU : 16'd0; // DMwe=is_sw on lecture
+   assign o_dmem_towrite = (is_load  == 1'b1) ? i_cur_dmem_data :
+                           (is_store == 1'b1) ? o_Rtdata : 16'd0; // DMwe=is_sw on lecture
    assign o_dmem_addr = (is_load | is_store) ? o_ALU : 16'd0;
 
+   // if load,  i_cur_dmem_data 
+   // if str, put o_Rt_Data into memory
    // Writeback
-   wire[15:0] regInputMux;
-   wire[15:0] selected_from_DM = (is_store == 16'd1) ? i_cur_dmem_data : o_ALU;
+   wire [15:0] regInputMux;
+   wire [15:0] selected_from_DM = (is_load == 1'b1) ? i_cur_dmem_data : o_ALU;
    assign regInputMux = (select_pc_plus_one == 16'd1) ? next_pc : selected_from_DM;
    assign i_wdata = regInputMux;
 
    // NZP Register, starts at 0000h at bootup
-   wire [2:0] curr_nzp = (i_wdata[15] == 1'b1) ? 3'b100 :
+   wire [2:0] nzp;
+   /*
+   wire [2:0] next_nzp = (i_wdata[15] == 1'b1) ? 3'b100 :
                          ($signed(i_wdata) == 16'h0000) ? 3'b010 : 3'b001;
-   // if cmp get alu result
+   */
+   wire [2:0] next_nzp = ($signed(i_wdata) == 16'd0) ? 3'b010 :
+                         (i_wdata[15] ==  1'b1) ? 3'b100 : 3'b001;
+
+   // If CMP, CMPU, CMPI, CMPIU get ALU result
+   // wire [2:0] nzp_mux = (i_cur_insn[15:12] == 4'b0010) ? alu_nzp : next_nzp;
+   
    // put in nzp
+   Nbit_reg #(3, 3'b000) nzp_reg (.in(next_nzp), .out(nzp), .clk(clk), .we(nzp_we), .gwe(gwe), .rst(rst));
 
-   Nbit_reg #(3, 3'b000) nzp_reg (.in(curr_nzp), .clk(clk), .we(nzp_we), .gwe(gwe), .rst(rst));
-
-   // Branch Unit
-   // CMP, CMPU, CMPI, CMPIU -------------------------------------------------- 
-
-
+   // Branch Unit   
    // Test cases: test_alu, test_br, test_ld_br, test_mem, test_all
 
    // Branch ------------------------------------------------------------------
@@ -140,12 +148,15 @@ module lc4_processor
 
    // Compute PC Plus One
    wire [15:0] s_ext_br = {{7{i_cur_insn[8]}}, i_cur_insn[8:0]};
+
+   // Branch is taken check NZP vs insn[11:9]
+   wire take_br = (nzp[2] & (i_cur_insn[11] == 1'b1)) ? 1'b1 :
+                  (nzp[1] & (i_cur_insn[10] == 1'b1)) ? 1'b1 :
+                  (nzp[0] & (i_cur_insn[9] == 1'b1)) ? 1'b1 : 1'b0;
+
    // If Branch that isn't NOP, add IMM9
-   wire [15:0] b_in = (is_branch & i_cur_insn[11:9] != 3'b000)? s_ext_br : 16'd0;
-   cla16 cla_branch(.a(pc),.b(b_in),.cin(1'b1),.sum(pc_plus_one));
-   
-   // Branch is taken check insn[11:9]
-   wire take_br = i_cur_insn[11:9];
+   wire [15:0] b_in = (is_branch & take_br)? s_ext_br : 16'd0;
+   cla16 cla_branch(.a(pc),.b(b_in),.cin(1'b1),.sum(pc_plus_one));   
    
    // JSR & JSRR  -------------------------------------------------------------
    wire [15:0] s_ext_jsr = {i_cur_insn[10], i_cur_insn[10:0], 4'b0}; // JSR Sign Ext
@@ -164,9 +175,9 @@ module lc4_processor
    // RTI  --------------------------------------------------------------------
    wire[15:0] pc_rti = o_Rsdata; // Selected to be Rs above
 
-   assign pc_ctrl_insn = (i_cur_insn[15:12] == 4'b0100) ? pc_jsrr :
-                         (i_cur_insn[15:12] == 4'b1100) ? pc_jmpr :
-                         (i_cur_insn[15:12] == 4'b1111) ? pc_trap : pc_rti;
+   assign pc_ctrl_insn = (i_cur_insn[15:12] == 4'h4) ? pc_jsrr :
+                         (i_cur_insn[15:12] == 4'hC) ? pc_jmpr :
+                         (i_cur_insn[15:12] == 4'hF) ? pc_trap : pc_rti;
 
    assign next_pc = is_control_insn? pc_ctrl_insn : pc_plus_one;
    /*
@@ -178,14 +189,14 @@ module lc4_processor
    */
 
    // Testbench signals
-   assign test_stall          = 2'b00;    // Testbench: is this a stall cycle? (don't compare the test values)
-   assign test_cur_pc         = pc;       // Testbench: program counter
+   assign test_stall          = 2'b00;          // Testbench: is this a stall cycle? (don't compare the test values)
+   assign test_cur_pc         = pc;             // Testbench: program counter
    assign test_cur_insn       = i_cur_insn;     // Testbench: instruction bits
    assign test_regfile_we     = regfile_we;     // Testbench: register file write enable
-   assign test_regfile_wsel   = wsel;         // Testbench: which register to write in the register file 
-   assign test_regfile_data   = i_wdata;         // Testbench: value to write into the register file
+   assign test_regfile_wsel   = wsel;           // Testbench: which register to write in the register file 
+   assign test_regfile_data   = iwdata;        // Testbench: value to write into the register file
    assign test_nzp_we         = nzp_we;         // Testbench: NZP condition codes write enable
-   assign test_nzp_new_bits   = curr_nzp;         // Testbench: value to write to NZP bits
+   assign test_nzp_new_bits   = next_nzp;            // Testbench: value to write to NZP bits
    assign test_dmem_we        = o_dmem_we;      // Testbench: data memory write enable
    assign test_dmem_addr      = o_dmem_addr;    // Testbench: address to read/write memory
    assign test_dmem_data      = o_dmem_towrite; // Testbench: value read/writen from/to memory

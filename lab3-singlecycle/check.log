@@ -256,7 +256,6 @@ Parameter 1 (\n) = 16
 Found cached RTLIL representation for module `$paramod\Nbit_reg\n=16'.
 Parameter 1 (\n) = 16
 Found cached RTLIL representation for module `$paramod\Nbit_reg\n=16'.
-Warning: Resizing cell port lc4_processor.register.i_rs from 1 bits to 3 bits.
 
 15. Executing FLATTEN pass (flatten design).
 <suppressed ~84 debug messages>
@@ -289,7 +288,7 @@ Checking module lc4_alu...
 Checking module srlmod...
 Found and reported 0 problems.
 
-Warnings: 2 unique messages, 2 total
-End of script. Logfile hash: 2bf6f4b925, CPU: user 0.50s system 0.00s, MEM: 44.39 MB peak
+Warnings: 1 unique messages, 1 total
+End of script. Logfile hash: 6a8e077300, CPU: user 0.35s system 0.02s, MEM: 44.46 MB peak
 Yosys 0.9+3855 (git sha1 54294957, clang 7.0.1 -fPIC -Os)
-Time spent: 65% 2x check (0 sec), 19% 12x read_verilog (0 sec), ...
+Time spent: 63% 2x check (0 sec), 20% 12x read_verilog (0 sec), ...
