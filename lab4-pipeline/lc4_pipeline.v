@@ -33,7 +33,7 @@ module lc4_processor
     output wire [7:0]  led_data // Which Zedboard LEDs should be turned on?
     );
    
-   /*** YOUR CODE HERE ***/
+   /** YOUR CODE HERE **/
 
    /* Add $display(...) calls in the always block below to
     * print out debug information at the end of every cycle.
