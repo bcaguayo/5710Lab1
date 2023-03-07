@@ -90,7 +90,7 @@ module lc4_processor
 
    // Data Decode
    wire [15:0] o_Rsdata, o_Rtdata, i_wdata;
-
+   
    // Ctrl_Insn: JSR, JSRR, TRAP
 
    // R7 = PC + 1: i_rd_we enable(1), i_rd/wsel = 111, i_wdata pc+1
@@ -128,8 +128,8 @@ module lc4_processor
    wire [2:0] next_nzp = (i_wdata[15] == 1'b1) ? 3'b100 :
                          ($signed(i_wdata) == 16'h0000) ? 3'b010 : 3'b001;
    */
-   wire [2:0] next_nzp = ($signed(i_wdata) == 16'd0) ? 3'b010 :
-                         (i_wdata[15] ==  1'b1) ? 3'b100 : 3'b001;
+   wire [2:0] next_nzp = ($signed(iwdata) == 16'd0) ? 3'b010 :
+                         (iwdata[15] ==  1'b1) ? 3'b100 : 3'b001;
 
    // If CMP, CMPU, CMPI, CMPIU get ALU result
    // wire [2:0] nzp_mux = (i_cur_insn[15:12] == 4'b0010) ? alu_nzp : next_nzp;
