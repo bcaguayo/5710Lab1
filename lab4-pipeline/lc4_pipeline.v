@@ -32,8 +32,64 @@ module lc4_processor
     input wire [7:0]   switch_data, // Current settings of the Zedboard switches
     output wire [7:0]  led_data // Which Zedboard LEDs should be turned on?
     );
+
+
+   // By default, assign LEDs to display switch inputs to avoid warnings about disconnected ports.
+   assign led_data = switch_data;
+
+   // Always execute one instruction each cycle (test_stall will get used in your pipelined processor)
+   /*
+   + 0: no stall
+   + 1: reserved for the superscalar design; for this lab, never set test_stall to 1
+   + 2: flushed due to misprediction or because the first real instruction hasn't made it through to the writeback stage yet
+   + 3: stalled due to load-to-use penalty
+   */
+   assign test_stall = 2'b0; 
+
+   //____________________________________FETCH___________________________________________
+
+   // pc wires attached to the PC register's ports
+   wire [15:0]   pc;      // Current program counter (read out from pc_reg)
+   wire [15:0]   next_pc; // Next program counter (you compute this and feed it into next_pc) 
+
+   // Program counter register, starts at 8200h at bootup
+   Nbit_reg #(16, 16'h8200) pc_reg (.in(next_pc), .out(pc), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+
+    // Fetch: PC+1
+   assign o_cur_pc = pc;
+
+   // REGISTER: PC
+   // only mx wx for lab4a
    
-   /** YOUR CODE HERE **/
+   //___________________________________DECODE___________________________________________
+
+   // Decoder
+   wire [2:0] r1sel, r2sel, wsel;
+   wire r1re, r2re, regfile_we, nzp_we, select_pc_plus_one, is_load, is_store, is_branch, is_control_insn;
+   lc4_decoder decoder(.insn(i_cur_insn), .r1sel(r1sel), .r1re(r1re), .r2sel(r2sel), .r2re(r2re), .wsel(wsel), 
+                       .regfile_we(regfile_we),.nzp_we(nzp_we), .select_pc_plus_one(select_pc_plus_one), .is_load(is_load), 
+                       .is_store(is_store), .is_branch(is_branch), .is_control_insn(is_control_insn));
+
+
+   
+   //___________________________________EXECUTE__________________________________________
+
+   
+   //____________________________________MEMORY__________________________________________
+
+   
+   //__________________________________WRITEBACK_________________________________________
+
+   // Set Test Wires Here
+
+
+
+
+
+
+
+
+
 
    /* Add $display(...) calls in the always block below to
     * print out debug information at the end of every cycle.
