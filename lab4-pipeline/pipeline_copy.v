@@ -63,7 +63,7 @@ module lc4_processor
 
    /// Register Values: PC
    wire [15:0] pc_D, insn_D;
-   Nbit_reg #(16, 16'h8200) D_pc_reg    (.in(pc),         .out(pc_D),   .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+   Nbit_reg #(16, 16'h8200) D_pc_reg    (.in(pc),   .out(pc_D),         .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
    Nbit_reg #(16, 16'h0000) D_insn_reg  (.in(i_cur_insn), .out(insn_D), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
    
    //___________________________________DECODE___________________________________________
@@ -73,6 +73,7 @@ module lc4_processor
    lc4_decoder decoder(.insn(i_cur_insn), .r1sel(r1sel), .r1re(r1re), .r2sel(r2sel), .r2re(r2re), .wsel(wsel), 
                        .regfile_we(regfile_we), .nzp_we(nzp_we), .select_pc_plus_one(select_pc_plus_one), .is_load(is_load), 
                        .is_store(is_store), .is_branch(is_branch), .is_control_insn(is_control_insn));
+
 
    // Data Decode
    wire [15:0] o_Rsdata, o_Rtdata, i_wdata;
@@ -276,7 +277,7 @@ module lc4_processor
    assign next_pc = is_control_insn? pc_ctrl_insn : pc_plus_one;
 
    // Set Test Wires Here 
-   assign test_stall          = 2'd0;          // Testbench: is this a stall cycle? (don't compare the test values)
+   assign test_stall          = 2'd2;          // Testbench: is this a stall cycle? (don't compare the test values)
    assign test_cur_pc         = pc;             // Testbench: program counter
    assign test_cur_insn       = i_cur_insn;     // Testbench: instruction bits
    assign test_regfile_we     = regfile_we;     // Testbench: register file write enable
