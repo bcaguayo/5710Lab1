@@ -21,7 +21,7 @@ module lc4_regfile #(parameter n = 16)
     output wire [n-1:0] o_rt_data, // rt contents
     input  wire [  2:0] i_rd,      // rd selector
     input  wire [n-1:0] i_wdata,   // data to write
-    input  wire         i_rd_we    // write enable
+    input  wire         i_rd_we   // write enable
     );
 
     // Register Values
@@ -74,7 +74,6 @@ module lc4_regfile #(parameter n = 16)
                        (i_rt == 3'b100) ? r4v : 
                        (i_rt == 3'b101) ? r5v : 
                        (i_rt == 3'b110) ? r6v : r7v; 
-
 
     // assign out based on condition 
     // ? : not mux
