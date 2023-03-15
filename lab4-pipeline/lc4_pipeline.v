@@ -44,7 +44,7 @@ module lc4_processor
    + 3: stalled due to load-to-use penalty
    */
    
-   wire in_stall = 2'd0; 
+   wire [1:0] in_stall = 2'b00; 
    
    // only mx wx bypass for lab4a
 
@@ -65,11 +65,12 @@ module lc4_processor
    //______________________________D Pipeline Register___________________________________
 
    /// Register Values: PC
-   wire [15:0] pc_D, insn_D;
+   wire [15:0] pc_D, next_pc_D, insn_D;
    wire [1:0]  stall_D; 
-   Nbit_reg #( 2, 2'd2)     D_stall_reg (.in(in_stall),   .out(stall_D),  .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
-   Nbit_reg #(16, 16'h8200) D_pc_reg    (.in(o_cur_pc),   .out(pc_D),     .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
-   Nbit_reg #(16, 16'h0000) D_insn_reg  (.in(i_cur_insn), .out(insn_D),   .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));   
+   Nbit_reg #( 2, 2'd2)     D_stall_reg   (.in(in_stall),   .out(stall_D),  .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+   Nbit_reg #(16, 16'h8200) D_pc_reg      (.in(o_cur_pc),   .out(pc_D),     .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+   // Nbit_reg #(16, 16'h0000) D_next_pc_reg (.in(next_pc),    .out(next_pc_D),.clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+   Nbit_reg #(16, 16'h0000) D_insn_reg    (.in(i_cur_insn), .out(insn_D),   .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));   
    
    //___________________________________DECODE___________________________________________
 
@@ -89,13 +90,13 @@ module lc4_processor
    
    assign irdwe   = regfile_we;
    assign ird     = wsel;
-   assign iwdata  = i_wdata;
+   assign iwdata  = i_wdata; 
    assign r1select = r1sel;
    */
 
    // ********************** REGFILE
    lc4_regfile #(.n(16)) register(.clk(clk), .rst(rst), .gwe(gwe),  .i_rs(r1sel),  .o_rs_data(o_Rsdata), .i_rt(r2sel),
-                                  .o_rt_data(o_Rtdata), .i_rd(wsel), .i_wdata(i_wdata), .i_rd_we(regfile_we));
+                                  .o_rt_data(o_Rtdata), .i_rd(wsel), .i_wdata(alu_W), .i_rd_we(regfile_we));
 
 
    //______________________________X Pipeline Register___________________________________
@@ -120,7 +121,8 @@ module lc4_processor
    // r1sel[3], r1re[1], r2sel[3], r2re[1], wsel[3], regfile_we[1]
    // [11:9]    [8]      [7:5]     [4]      [3:1]    [0]
    wire [11:0] regfile_data_in = {r1sel,   r1re,   r2sel,   r2re,   wsel,   regfile_we};
-   wire [11:0] regfile_data_X =  {r1sel_X, r1re_X, r2sel_X, r2re_X, wsel_X, regfile_we_X};
+   wire [11:0] regfile_data_X;
+   //  =  {r1sel_X, r1re_X, r2sel_X, r2re_X, wsel_X, regfile_we_X}
 
    // Where rf stands for Register File
    Nbit_reg #(12, 12'd0) X_regfile_data_reg (.in(regfile_data_in), .out(regfile_data_X), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
@@ -140,21 +142,25 @@ module lc4_processor
       r2re_X && regfile_we_W && (r2sel_X == wsel_W)   ->    pass regInputMux into o_Rtdata
    */
 
-   /*
    wire r1re_B = regfile_data_X[8];
    wire r2re_B = regfile_data_X[4];
    wire [2:0] r1sel_B = regfile_data_X[11:9];
    wire [2:0] r2sel_B = regfile_data_X[7:5];
 
-   wire [15:0] rsdata = (r1re_B && regfile_we_M && (r1sel_B == wsel_M)) ? alu_M : 
-                        (r1re_B && regfile_we_W && (r1sel_B == wsel_W)) ? regInputMux : rsdata_X;
+   wire [2:0] wsel_M_B = regfile_data_M[3:1];
+   wire [2:0] wsel_W_B = regfile_data_W[3:1];
 
-   wire [15:0] rtdata = (r2re_B && regfile_we_M && (r2sel_B == wsel_M)) ? alu_M : 
-                        (r2re_B && regfile_we_W && (r2sel_B == wsel_W)) ? regInputMux : rtdata_X;
-   */   
+   //wire regfile_we_M = regfile_data_M[0];
+   //wire regfile_we_W = regfile_data_W[0];
+
+   wire [15:0] rsdata = (r1re_B && regfile_data_M[0] && (r1sel_B == wsel_M_B)) ? alu_M : 
+                        (r1re_B && regfile_data_W[0] && (r1sel_B == wsel_W_B)) ? regInputMux : rsdata_X;
+
+   wire [15:0] rtdata = (r2re_B && regfile_data_M[0] && (r2sel_B == wsel_M_B)) ? alu_M : 
+                        (r2re_B && regfile_data_W[0] && (r2sel_B == wsel_W_B)) ? regInputMux : rtdata_X;
 
    wire[15:0] o_ALU;
-   lc4_alu alu (.i_insn(insn_X), .i_pc(pc_X), .i_r1data(rsdata_X), .i_r2data(rtdata_X), .o_result(o_ALU));
+   lc4_alu alu (.i_insn(insn_X), .i_pc(pc_X), .i_r1data(rsdata), .i_r2data(rtdata), .o_result(o_ALU));
 
    //______________________________M Pipeline Register___________________________________
 
@@ -176,7 +182,7 @@ module lc4_processor
 
    wire [2:0] r1sel_M, r2sel_M, wsel_M;
    wire r1re_M, r2re_M, regfile_we_M;
-   wire [11:0] regfile_data_M =  {r1sel_M, r1re_M, r2sel_M, r2re_M, wsel_M, regfile_we_M};
+   wire [11:0] regfile_data_M;
 
    // Where rf stands for Register File
    Nbit_reg #(12, 12'd0) M_regfile_data_reg (.in(regfile_data_X), .out(regfile_data_M), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
@@ -188,7 +194,7 @@ module lc4_processor
 
    // New ALU
    wire [15:0] alu_M;
-   Nbit_reg #(16, 16'd0) M_alu_reg (.in(o_ALU), .out(alu_M), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+   Nbit_reg #(16, 16'h0000) M_alu_reg (.in(o_ALU), .out(alu_M), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
    //____________________________________MEMORY__________________________________________
 
@@ -221,7 +227,7 @@ module lc4_processor
 
    wire [2:0] r1sel_W, r2sel_W, wsel_W;
    wire r1re_W, r2re_W, regfile_we_W;
-   wire [11:0] regfile_data_W =  {r1sel_W, r1re_W, r2sel_W, r2re_W, wsel_W, regfile_we_W};
+   wire [11:0] regfile_data_W;
 
    Nbit_reg #(12, 12'd0) W_regfile_data_reg (.in(regfile_data_M),  .out(regfile_data_W), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
@@ -242,18 +248,16 @@ module lc4_processor
 
    //__________________________________WRITEBACK_________________________________________
 
-   // Reg Input Mux
-
-   // if load,  o_dmem_towrite 
-   // if str, put o_Rt_Data into memory
-
    // propagate next pc
    wire is_ctrl_insn_W = ctrl_sign_W[0];
    wire is_br_W  = ctrl_sign_W[1];
    wire is_str_W = ctrl_sign_W[2];
    wire is_ld_W  = ctrl_sign_W[3];
-   wire sel_pc_plus_one = ctrl_sign_W[4];   
+   wire sel_pc_plus_one = ctrl_sign_W[4];
 
+   // Reg Input MUX
+   // if load,  o_dmem_towrite 
+   // if str, put o_Rt_Data into memory
    wire [15:0] selected_from_DM = (is_ld_W == 1'b1) ? dmem_towrite_W : alu_W;
    wire [15:0] regInputMux = (sel_pc_plus_one == 1'd1) ? next_pc : selected_from_DM;
 
@@ -266,8 +270,8 @@ module lc4_processor
    wire [2:0] next_nzp = (i_wdata[15] == 1'b1) ? 3'b100 :
                          ($signed(i_wdata) == 16'h0000) ? 3'b010 : 3'b001;
    */
-   wire [2:0] next_nzp = ($signed(wdata_W) == 16'd0) ? 3'b010 :
-                         (wdata_W[15] ==  1'b1) ? 3'b100 : 3'b001;
+   wire [2:0] next_nzp = ($signed(regInputMux) == 16'd0) ? 3'b010 :
+                         (regInputMux[15] ==  1'b1) ? 3'b100 : 3'b001;
 
    // If CMP, CMPU, CMPI, CMPIU get ALU result
    // wire [2:0] nzp_mux = (i_cur_insn[15:12] == 4'b0010) ? alu_nzp : next_nzp;
@@ -336,13 +340,13 @@ module lc4_processor
 
    assign next_pc = is_ctrl_insn_W? pc_ctrl_insn : pc_plus_one;
 
-   // Set Test Wires Her
+   // Set Test Wires Here
    assign test_stall          = stall_W;           // Testbench: is this a stall cycle? (don't compare the test values)
    assign test_cur_pc         = pc_W;              // Testbench: program counter
    assign test_cur_insn       = insn_W;            // Testbench: instruction bits
-   assign test_regfile_we     = regfile_data_W[0]; // Testbench: register file write enable
-   assign test_regfile_wsel   = wsel_W;            // Testbench: which register to write in the register file 
-   assign test_regfile_data   = wdata_W;           // Testbench: value to write into the register file
+   assign test_regfile_we     = regfile_data_W[0];        // Testbench: register file write enable
+   assign test_regfile_wsel   = regfile_data_W[3:1];      // Testbench: which register to write in the register file 
+   assign test_regfile_data   = alu_W;           // Testbench: value to write into the register file
    assign test_nzp_we         = ctrl_sign_W[5];    // Testbench: NZP condition codes write enable
    assign test_nzp_new_bits   = next_nzp;          // Testbench: value to write to NZP bits
    assign test_dmem_we        = dmem_we_W;         // Testbench: data memory write enable
@@ -380,7 +384,7 @@ module lc4_processor
     */
 `ifndef NDEBUG
    always @(posedge gwe) begin
-      // $display("%d %h %h %h %h %h", $time, f_pc, d_pc, e_pc, m_pc, test_cur_pc);
+       $display("wsel %h", wsel);
       // if (o_dmem_we)
       //   $display("%d STORE %h <= %h", $time, o_dmem_addr, o_dmem_towrite);
 
@@ -422,7 +426,7 @@ module lc4_processor
       // The Objects pane will update to display the wires
       // in that module.
 
-      //$display(); 
+      // $display(); 
    end
 `endif
 endmodule

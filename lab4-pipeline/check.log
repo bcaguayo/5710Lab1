@@ -82,6 +82,7 @@ Successfully finished Verilog frontend.
 7. Executing Verilog-2005 frontend: lc4_pipeline.v
 Parsing Verilog input from `lc4_pipeline.v' to AST representation.
 Generating RTLIL representation for module `\lc4_processor'.
+lc4_pipeline.v:0: Warning: System task `$display' outside initial block is unsupported.
 Successfully finished Verilog frontend.
 
 -- Parsing `include/register.v' using frontend `verilog' --
@@ -368,7 +369,6 @@ Parameter 1 (\n) = 16
 Found cached RTLIL representation for module `$paramod\Nbit_reg\n=16'.
 Parameter 1 (\n) = 16
 Found cached RTLIL representation for module `$paramod\Nbit_reg\n=16'.
-Warning: Resizing cell port lc4_processor.D_stall_reg.in from 1 bits to 2 bits.
 
 15. Executing FLATTEN pass (flatten design).
 <suppressed ~116 debug messages>
@@ -406,6 +406,6 @@ Checking module srlmod...
 Found and reported 0 problems.
 
 Warnings: 2 unique messages, 2 total
-End of script. Logfile hash: f60e834df2, CPU: user 0.37s system 0.02s, MEM: 45.50 MB peak
+End of script. Logfile hash: 2cbd9dfd3d, CPU: user 0.40s system 0.00s, MEM: 45.53 MB peak
 Yosys 0.9+3855 (git sha1 54294957, clang 7.0.1 -fPIC -Os)
 Time spent: 61% 2x check (0 sec), 19% 12x read_verilog (0 sec), ...
