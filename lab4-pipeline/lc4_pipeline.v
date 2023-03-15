@@ -150,14 +150,14 @@ module lc4_processor
    wire [2:0] wsel_M_B = regfile_data_M[3:1];
    wire [2:0] wsel_W_B = regfile_data_W[3:1];
 
-   //wire regfile_we_M = regfile_data_M[0];
-   //wire regfile_we_W = regfile_data_W[0];
+   wire regfile_we_M_B = regfile_data_M[0];
+   wire regfile_we_W_B = regfile_data_W[0];
 
-   wire [15:0] rsdata = (r1re_B && regfile_data_M[0] && (r1sel_B == wsel_M_B)) ? alu_M : 
-                        (r1re_B && regfile_data_W[0] && (r1sel_B == wsel_W_B)) ? regInputMux : rsdata_X;
+   wire [15:0] rsdata = (r1re_B && regfile_we_M_B && (r1sel_B == wsel_M_B)) ? alu_M : 
+                        (r1re_B && regfile_we_W_B && (r1sel_B == wsel_W_B)) ? regInputMux : rsdata_X;
 
-   wire [15:0] rtdata = (r2re_B && regfile_data_M[0] && (r2sel_B == wsel_M_B)) ? alu_M : 
-                        (r2re_B && regfile_data_W[0] && (r2sel_B == wsel_W_B)) ? regInputMux : rtdata_X;
+   wire [15:0] rtdata = (r2re_B && regfile_we_M_B && (r2sel_B == wsel_M_B)) ? alu_M : 
+                        (r2re_B && regfile_we_W_B && (r2sel_B == wsel_W_B)) ? regInputMux : rtdata_X;
 
    wire[15:0] o_ALU;
    lc4_alu alu (.i_insn(insn_X), .i_pc(pc_X), .i_r1data(rsdata), .i_r2data(rtdata), .o_result(o_ALU));

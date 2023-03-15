@@ -82,7 +82,6 @@ Successfully finished Verilog frontend.
 7. Executing Verilog-2005 frontend: lc4_pipeline.v
 Parsing Verilog input from `lc4_pipeline.v' to AST representation.
 Generating RTLIL representation for module `\lc4_processor'.
-lc4_pipeline.v:0: Warning: System task `$display' outside initial block is unsupported.
 Successfully finished Verilog frontend.
 
 -- Parsing `include/register.v' using frontend `verilog' --
@@ -405,7 +404,7 @@ Checking module lc4_alu...
 Checking module srlmod...
 Found and reported 0 problems.
 
-Warnings: 2 unique messages, 2 total
-End of script. Logfile hash: 2cbd9dfd3d, CPU: user 0.40s system 0.00s, MEM: 45.53 MB peak
+Warnings: 1 unique messages, 1 total
+End of script. Logfile hash: 10b6ca0ea9, CPU: user 0.40s system 0.01s, MEM: 45.65 MB peak
 Yosys 0.9+3855 (git sha1 54294957, clang 7.0.1 -fPIC -Os)
-Time spent: 61% 2x check (0 sec), 19% 12x read_verilog (0 sec), ...
+Time spent: 60% 2x check (0 sec), 20% 12x read_verilog (0 sec), ...
