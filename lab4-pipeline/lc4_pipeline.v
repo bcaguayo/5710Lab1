@@ -384,7 +384,7 @@ module lc4_processor
     */
 `ifndef NDEBUG
    always @(posedge gwe) begin
-       $display("wsel %h", wsel);
+      // $display("wsel %h", wsel);
       // if (o_dmem_we)
       //   $display("%d STORE %h <= %h", $time, o_dmem_addr, o_dmem_towrite);
 
