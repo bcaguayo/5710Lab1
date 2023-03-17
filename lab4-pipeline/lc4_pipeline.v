@@ -59,6 +59,8 @@ module lc4_processor
    // Program counter register, starts at 8200h at bootup
    Nbit_reg #(16, 16'h8200) pc_reg (.in(next_pc), .out(pc), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
+   assign next_pc = pc + 1;
+
     // Fetch: PC+1
    assign o_cur_pc = pc;
 
@@ -96,7 +98,7 @@ module lc4_processor
 
    // ********************** REGFILE
    lc4_regfile #(.n(16)) register(.clk(clk), .rst(rst), .gwe(gwe),  .i_rs(r1sel),  .o_rs_data(o_Rsdata), .i_rt(r2sel),
-                                  .o_rt_data(o_Rtdata), .i_rd(wsel), .i_wdata(alu_W), .i_rd_we(regfile_we));
+                                  .o_rt_data(o_Rtdata), .i_rd(regfile_data_W[3:1]), .i_wdata(alu_W), .i_rd_we(regfile_data_W[0]));
 
 
    //______________________________X Pipeline Register___________________________________
@@ -341,14 +343,14 @@ module lc4_processor
                          (insn_W[15:12] == 4'hC) ? pc_jmpr :
                          (insn_W[15:12] == 4'hF) ? pc_trap : pc_rti;
 
-   assign next_pc = is_ctrl_insn_W? pc_ctrl_insn : pc_plus_one;
+   //assign next_pc = is_ctrl_insn_W? pc_ctrl_insn : pc_plus_one;
 
    // Set Test Wires Here
    assign test_stall          = stall_W;           // Testbench: is this a stall cycle? (don't compare the test values)
    assign test_cur_pc         = pc_W;              // Testbench: program counter
    assign test_cur_insn       = insn_W;            // Testbench: instruction bits
    assign test_regfile_we     = regfile_data_W[0];        // Testbench: register file write enable
-   assign test_regfile_wsel   = regfile_data_W[3:1];      // Testbench: which register to write in the register file 
+   assign test_regfile_wsel   = rjegfile_data_W[3:1];      // Testbench: which register to write in the register file 
    assign test_regfile_data   = alu_W;           // Testbench: value to write into the register file
    assign test_nzp_we         = ctrl_sign_W[5];    // Testbench: NZP condition codes write enable
    assign test_nzp_new_bits   = next_nzp;          // Testbench: value to write to NZP bits
