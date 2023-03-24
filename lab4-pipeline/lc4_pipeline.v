@@ -44,8 +44,7 @@ module lc4_processor
    + 3: stalled due to load-to-use penalty
    */
    
-   wire [1:0] in_stall = 2'b00; 
-   
+   wire [1:0] in_stall = 2'b00;    
    // only mx wx bypass for lab4a
 
    // 16'h3000
@@ -59,6 +58,7 @@ module lc4_processor
    // Program counter register, starts at 8200h at bootup
    Nbit_reg #(16, 16'h8200) pc_reg (.in(next_pc), .out(pc), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
+   // propagate next_pc
    assign next_pc = pc + 1;
 
     // Fetch: PC+1
@@ -96,9 +96,19 @@ module lc4_processor
    assign r1select = r1sel;
    */
 
+   /* r1re_D && regfile_we_W && (r1sel_D == wsel_W)   ->    pass regInputMux into o_Rsdata
+      r2re_D && regfile_we_W && (r2sel_D == wsel_W)   ->    pass regInputMux into o_Rtdata
+   */
+
+   // WD Bypass   
+   wire regfile_we_W_D = regfile_data_W[0];
+   wire [2:0] wsel_W_D = regfile_data_W[3:1];
+   wire [15:0] rsdata_D = (r1re && regfile_we_W_D && (r1sel == wsel_W_D)) ? alu_W : o_Rsdata;
+   wire [15:0] rtdata_D = (r2re && regfile_we_W_D && (r2sel == wsel_W_D)) ? alu_W : o_Rtdata;
+
    // ********************** REGFILE
-   lc4_regfile #(.n(16)) register(.clk(clk), .rst(rst), .gwe(gwe),  .i_rs(r1sel),  .o_rs_data(o_Rsdata), .i_rt(r2sel),
-                                  .o_rt_data(o_Rtdata), .i_rd(regfile_data_W[3:1]), .i_wdata(alu_W), .i_rd_we(regfile_data_W[0]));
+   lc4_regfile #(.n(16)) register(.clk(clk), .rst(rst), .gwe(gwe),  .i_rs(r1sel),  .o_rs_data(rsdata_D), .i_rt(r2sel),
+                                  .o_rt_data(rtdata_D), .i_rd(regfile_data_W[3:1]), .i_wdata(alu_W), .i_rd_we(regfile_data_W[0]));
 
 
    //______________________________X Pipeline Register___________________________________
@@ -119,8 +129,6 @@ module lc4_processor
    Nbit_reg #(16, 16'h0000) X_rt_reg      (.in(o_Rtdata), .out(rtdata_X), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
    Nbit_reg #(16, 16'h0000) X_wdata_reg   (.in(i_wdata),  .out(wdata_X),  .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
-   wire [2:0] r1sel_X, r2sel_X, wsel_X;
-   wire r1re_X, r2re_X, regfile_we_X;
    // r1sel[3], r1re[1], r2sel[3], r2re[1], wsel[3], regfile_we[1]
    // [11:9]    [8]      [7:5]     [4]      [3:1]    [0]
    wire [11:0] regfile_data_in = {r1sel,   r1re,   r2sel,   r2re,   wsel,   regfile_we};
@@ -156,11 +164,14 @@ module lc4_processor
    wire regfile_we_M_B = regfile_data_M[0];
    wire regfile_we_W_B = regfile_data_W[0];
 
+   // change alu_W to regInputMux
    wire [15:0] rsdata = (r1re_B && regfile_we_M_B && (r1sel_B == wsel_M_B)) ? alu_M : 
-                        (r1re_B && regfile_we_W_B && (r1sel_B == wsel_W_B)) ? regInputMux : rsdata_X;
+                        (r1re_B && regfile_we_W_B && (r1sel_B == wsel_W_B)) ? alu_W : rsdata_X;
 
    wire [15:0] rtdata = (r2re_B && regfile_we_M_B && (r2sel_B == wsel_M_B)) ? alu_M : 
-                        (r2re_B && regfile_we_W_B && (r2sel_B == wsel_W_B)) ? regInputMux : rtdata_X;
+                        (r2re_B && regfile_we_W_B && (r2sel_B == wsel_W_B)) ? alu_W : rtdata_X;
+   
+   // 
 
    wire[15:0] o_ALU;
    lc4_alu alu (.i_insn(insn_X), .i_pc(pc_X), .i_r1data(rsdata), .i_r2data(rtdata), .o_result(o_ALU));
@@ -184,8 +195,6 @@ module lc4_processor
    Nbit_reg #(16, 16'h0000) M_rt_reg      (.in(rtdata_X), .out(rtdata_M),   .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
    Nbit_reg #(16, 16'h0000) M_wdata_reg   (.in(wdata_X),  .out(wdata_M),    .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
-   wire [2:0] r1sel_M, r2sel_M, wsel_M;
-   wire r1re_M, r2re_M, regfile_we_M;
    wire [11:0] regfile_data_M;
 
    // Where rf stands for Register File
@@ -230,8 +239,6 @@ module lc4_processor
    Nbit_reg #(16, 16'h0000) W_rt_reg      (.in(rtdata_M), .out(rtdata_W),   .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
    Nbit_reg #(16, 16'h0000) W_wdata_reg   (.in(wdata_M),  .out(wdata_W),    .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
-   wire [2:0] r1sel_W, r2sel_W, wsel_W;
-   wire r1re_W, r2re_W, regfile_we_W;
    wire [11:0] regfile_data_W;
 
    Nbit_reg #(12, 12'd0) W_regfile_data_reg (.in(regfile_data_M),  .out(regfile_data_W), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
@@ -350,7 +357,7 @@ module lc4_processor
    assign test_cur_pc         = pc_W;              // Testbench: program counter
    assign test_cur_insn       = insn_W;            // Testbench: instruction bits
    assign test_regfile_we     = regfile_data_W[0];        // Testbench: register file write enable
-   assign test_regfile_wsel   = rjegfile_data_W[3:1];      // Testbench: which register to write in the register file 
+   assign test_regfile_wsel   = regfile_data_W[3:1];      // Testbench: which register to write in the register file 
    assign test_regfile_data   = alu_W;           // Testbench: value to write into the register file
    assign test_nzp_we         = ctrl_sign_W[5];    // Testbench: NZP condition codes write enable
    assign test_nzp_new_bits   = next_nzp;          // Testbench: value to write to NZP bits
