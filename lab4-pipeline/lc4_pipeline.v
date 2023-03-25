@@ -103,12 +103,12 @@ module lc4_processor
    // WD Bypass   
    wire regfile_we_W_D = regfile_data_W[0];
    wire [2:0] wsel_W_D = regfile_data_W[3:1];
-   wire [15:0] rsdata_D = (r1re && regfile_we_W_D && (r1sel == wsel_W_D)) ? alu_W : o_Rsdata;
-   wire [15:0] rtdata_D = (r2re && regfile_we_W_D && (r2sel == wsel_W_D)) ? alu_W : o_Rtdata;
+   wire [15:0] rsdata_D = (r1re && regfile_we_W_D && (r1sel == wsel_W_D)) ? regInputMux : o_Rsdata;
+   wire [15:0] rtdata_D = (r2re && regfile_we_W_D && (r2sel == wsel_W_D)) ? regInputMux : o_Rtdata;
 
    // ********************** REGFILE
-   lc4_regfile #(.n(16)) register(.clk(clk), .rst(rst), .gwe(gwe),  .i_rs(r1sel),  .o_rs_data(rsdata_D), .i_rt(r2sel),
-                                  .o_rt_data(rtdata_D), .i_rd(regfile_data_W[3:1]), .i_wdata(alu_W), .i_rd_we(regfile_data_W[0]));
+   lc4_regfile #(.n(16)) register(.clk(clk), .rst(rst), .gwe(gwe),  .i_rs(r1sel),  .o_rs_data(o_Rsdata), .i_rt(r2sel),
+                                  .o_rt_data(o_Rtdata), .i_rd(regfile_data_W[3:1]), .i_wdata(alu_W), .i_rd_we(regfile_data_W[0]));
 
 
    //______________________________X Pipeline Register___________________________________
@@ -125,8 +125,8 @@ module lc4_processor
    Nbit_reg #(16, 16'h8200) X_pc_reg      (.in(pc_D),     .out(pc_X),     .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
    Nbit_reg #(16, 16'h0000) X_next_pc_reg (.in(next_pc_D),.out(next_pc_X),.clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
    Nbit_reg #(16, 16'h0000) X_insn_reg    (.in(insn_D),   .out(insn_X),   .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
-   Nbit_reg #(16, 16'h0000) X_rs_reg      (.in(o_Rsdata), .out(rsdata_X), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
-   Nbit_reg #(16, 16'h0000) X_rt_reg      (.in(o_Rtdata), .out(rtdata_X), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+   Nbit_reg #(16, 16'h0000) X_rs_reg      (.in(rsdata_D), .out(rsdata_X), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+   Nbit_reg #(16, 16'h0000) X_rt_reg      (.in(rtdata_D), .out(rtdata_X), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
    Nbit_reg #(16, 16'h0000) X_wdata_reg   (.in(i_wdata),  .out(wdata_X),  .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
    // r1sel[3], r1re[1], r2sel[3], r2re[1], wsel[3], regfile_we[1]
@@ -159,6 +159,7 @@ module lc4_processor
    wire [2:0] r2sel_B = regfile_data_X[7:5];
 
    wire [2:0] wsel_M_B = regfile_data_M[3:1];
+   wire [2:0] r2sel_M_B = regfile_data_M[7:5];
    wire [2:0] wsel_W_B = regfile_data_W[3:1];
 
    wire regfile_we_M_B = regfile_data_M[0];
@@ -166,12 +167,12 @@ module lc4_processor
 
    // change alu_W to regInputMux
    wire [15:0] rsdata = (r1re_B && regfile_we_M_B && (r1sel_B == wsel_M_B)) ? alu_M : 
-                        (r1re_B && regfile_we_W_B && (r1sel_B == wsel_W_B)) ? alu_W : rsdata_X;
+                      //(r1re_B && regfile_we_M_B && (r1sel_B == r2sel_M_B)) ? i_cur_dmem_data : 
+                        (r1re_B && regfile_we_W_B && (r1sel_B == wsel_W_B)) ? regInputMux : rsdata_X;
 
    wire [15:0] rtdata = (r2re_B && regfile_we_M_B && (r2sel_B == wsel_M_B)) ? alu_M : 
-                        (r2re_B && regfile_we_W_B && (r2sel_B == wsel_W_B)) ? alu_W : rtdata_X;
-   
-   // 
+                      //(r2re_B && regfile_we_M_B && (r2sel_B == r2sel_M_B)) ? i_cur_dmem_data : 
+                        (r2re_B && regfile_we_W_B && (r2sel_B == wsel_W_B)) ? regInputMux : rtdata_X;
 
    wire[15:0] o_ALU;
    lc4_alu alu (.i_insn(insn_X), .i_pc(pc_X), .i_r1data(rsdata), .i_r2data(rtdata), .o_result(o_ALU));
@@ -214,10 +215,17 @@ module lc4_processor
    wire is_str_M = ctrl_sign_M[2];
    wire is_ld_M  = ctrl_sign_M[3];
 
+   wire is_str_W_B = ctrl_sign_W[2];
+
    assign o_dmem_we = is_str_M;
-   assign o_dmem_towrite = (is_ld_M  == 1'b1) ? i_cur_dmem_data :
+   // WM Bypass = Rd Load & Rt Store
+   assign o_dmem_towrite = (is_str_W_B && is_ld_M && 
+                           (regfile_data_M[3:1] == regfile_data_W[7:5])) ? dmem_towrite_W :
+                           (is_ld_M  == 1'b1) ? i_cur_dmem_data :
                            (is_str_M == 1'b1) ? rtdata_M : 16'd0; // DMwe=is_sw on lecture
    assign o_dmem_addr = (is_ld_M | is_str_M) ? alu_M : 16'd0;
+
+   
 
    //______________________________W Pipeline Register___________________________________
 
@@ -358,7 +366,7 @@ module lc4_processor
    assign test_cur_insn       = insn_W;            // Testbench: instruction bits
    assign test_regfile_we     = regfile_data_W[0];        // Testbench: register file write enable
    assign test_regfile_wsel   = regfile_data_W[3:1];      // Testbench: which register to write in the register file 
-   assign test_regfile_data   = alu_W;           // Testbench: value to write into the register file
+   assign test_regfile_data   = regInputMux;           // Testbench: value to write into the register file
    assign test_nzp_we         = ctrl_sign_W[5];    // Testbench: NZP condition codes write enable
    assign test_nzp_new_bits   = next_nzp;          // Testbench: value to write to NZP bits
    assign test_dmem_we        = dmem_we_W;         // Testbench: data memory write enable
