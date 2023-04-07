@@ -1,7 +1,7 @@
 Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 -------------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2020.2 (lin64) Build 3064766 Wed Nov 18 09:12:47 MST 2020
-| Date         : Fri Mar 17 16:11:50 2023
+| Date         : Fri Mar 31 16:18:43 2023
 | Host         : big02.seas.upenn.edu running 64-bit openSUSE Leap 15.4
 | Command      : report_timing_summary -file ./output/post_synth_timing_summary_report.txt
 | Design       : lc4_system
@@ -128,7 +128,7 @@ Table of Contents
 
     WNS(ns)      TNS(ns)  TNS Failing Endpoints  TNS Total Endpoints      WHS(ns)      THS(ns)  THS Failing Endpoints  THS Total Endpoints     WPWS(ns)     TPWS(ns)  TPWS Failing Endpoints  TPWS Total Endpoints  
     -------      -------  ---------------------  -------------------      -------      -------  ---------------------  -------------------     --------     --------  ----------------------  --------------------  
-     11.026        0.000                      0                 2263        0.083        0.000                      0                 2263        3.000        0.000                       0                   551  
+      5.173        0.000                      0                 2494        0.083        0.000                      0                 2494        3.000        0.000                       0                   650  
 
 
 All user specified timing constraints are met.
@@ -156,7 +156,7 @@ CLOCK_100MHz                          {0.000 5.000}      10.000          100.000
 Clock                                     WNS(ns)      TNS(ns)  TNS Failing Endpoints  TNS Total Endpoints      WHS(ns)      THS(ns)  THS Failing Endpoints  THS Total Endpoints     WPWS(ns)     TPWS(ns)  TPWS Failing Endpoints  TPWS Total Endpoints  
 -----                                     -------      -------  ---------------------  -------------------      -------      -------  ---------------------  -------------------     --------     --------  ----------------------  --------------------  
 CLOCK_100MHz                                                                                                                                                                            3.000        0.000                       0                     1  
-  clk_processor_design_1_clk_wiz_0_0       11.026        0.000                      0                 2077        0.132        0.000                      0                 2077       27.645        0.000                       0                   493  
+  clk_processor_design_1_clk_wiz_0_0        5.173        0.000                      0                 2308        0.140        0.000                      0                 2308       28.125        0.000                       0                   592  
   clk_vga_design_1_clk_wiz_0_0                                                                                                                                                         37.424        0.000                       0                    10  
   clk_vga_inv_design_1_clk_wiz_0_0         35.931        0.000                      0                   62        0.083        0.000                      0                   62       19.020        0.000                       0                    44  
   clkfbout_design_1_clk_wiz_0_0                                                                                                                                                         7.845        0.000                       0                     3  
@@ -217,24 +217,24 @@ High Pulse Width  Fast    MMCME2_ADV/CLKIN1  n/a            2.000         5.000 
 From Clock:  clk_processor_design_1_clk_wiz_0_0
   To Clock:  clk_processor_design_1_clk_wiz_0_0
 
-Setup :            0  Failing Endpoints,  Worst Slack       11.026ns,  Total Violation        0.000ns
-Hold  :            0  Failing Endpoints,  Worst Slack        0.132ns,  Total Violation        0.000ns
-PW    :            0  Failing Endpoints,  Worst Slack       27.645ns,  Total Violation        0.000ns
+Setup :            0  Failing Endpoints,  Worst Slack        5.173ns,  Total Violation        0.000ns
+Hold  :            0  Failing Endpoints,  Worst Slack        0.140ns,  Total Violation        0.000ns
+PW    :            0  Failing Endpoints,  Worst Slack       28.125ns,  Total Violation        0.000ns
 ---------------------------------------------------------------------------------------------------
 
 
 Max Delay Paths
 --------------------------------------------------------------------------------------
-Slack (MET) :             11.026ns  (required time - arrival time)
-  Source:                 proc_inst/W_regfile_data_reg/state_reg[3]/C
+Slack (MET) :             5.173ns  (required time - arrival time)
+  Source:                 proc_inst/dataAddr/state_reg[14]/C
                             (rising edge-triggered cell FDRE clocked by clk_processor_design_1_clk_wiz_0_0  {rise@0.000ns fall@28.625ns period=57.250ns})
-  Destination:            proc_inst/M_alu_reg/state_reg[0]/D
+  Destination:            proc_inst/pc_reg/state_reg[0]/D
                             (rising edge-triggered cell FDRE clocked by clk_processor_design_1_clk_wiz_0_0  {rise@0.000ns fall@28.625ns period=57.250ns})
   Path Group:             clk_processor_design_1_clk_wiz_0_0
   Path Type:              Setup (Max at Slow Process Corner)
   Requirement:            57.250ns  (clk_processor_design_1_clk_wiz_0_0 rise@57.250ns - clk_processor_design_1_clk_wiz_0_0 rise@0.000ns)
-  Data Path Delay:        46.062ns  (logic 16.161ns (35.085%)  route 29.901ns (64.915%))
-  Logic Levels:           67  (CARRY4=30 LUT2=2 LUT4=19 LUT5=3 LUT6=12 MUXF7=1)
+  Data Path Delay:        51.879ns  (logic 17.035ns (32.836%)  route 34.844ns (67.164%))
+  Logic Levels:           73  (CARRY4=22 LUT1=2 LUT3=5 LUT4=16 LUT5=3 LUT6=24 MUXF7=1)
   Clock Path Skew:        -0.145ns (DCD - SCD + CPR)
     Destination Clock Delay (DCD):    -2.229ns = ( 55.021 - 57.250 ) 
     Source Clock Delay      (SCD):    -1.554ns
@@ -256,176 +256,180 @@ Slack (MET) :             11.026ns  (required time - arrival time)
                                                      -5.113    -3.038 r  mmcm0/mmcm_adv_inst/CLKOUT0
                          net (fo=1, unplaced)         0.800    -2.239    mmcm0/clk_processor_design_1_clk_wiz_0_0
                          BUFG (Prop_bufg_I_O)         0.101    -2.138 r  mmcm0/clkout1_buf/O
-                         net (fo=491, unplaced)       0.584    -1.554    proc_inst/W_regfile_data_reg/clk_processor
-                         FDRE                                         r  proc_inst/W_regfile_data_reg/state_reg[3]/C
+                         net (fo=590, unplaced)       0.584    -1.554    proc_inst/dataAddr/clk_processor
+                         FDRE                                         r  proc_inst/dataAddr/state_reg[14]/C
   -------------------------------------------------------------------    -------------------
-                         FDRE (Prop_fdre_C_Q)         0.478    -1.076 r  proc_inst/W_regfile_data_reg/state_reg[3]/Q
-                         net (fo=10, unplaced)        1.008    -0.068    proc_inst/W_regfile_data_reg/wsel_W_B[2]
-                         LUT6 (Prop_lut6_I0_O)        0.295     0.227 r  proc_inst/W_regfile_data_reg/a_out2_i_33/O
-                         net (fo=17, unplaced)        0.505     0.732    proc_inst/M_alu_reg/a_out2_1
-                         LUT6 (Prop_lut6_I4_O)        0.124     0.856 f  proc_inst/M_alu_reg/a_out2_i_4/O
-                         net (fo=72, unplaced)        1.202     2.058    proc_inst/M_alu_reg/rtdata[10]
-                         LUT6 (Prop_lut6_I1_O)        0.124     2.182 f  proc_inst/M_alu_reg/state[15]_i_159/O
-                         net (fo=3, unplaced)         0.920     3.102    proc_inst/M_alu_reg/state[15]_i_159_n_0
-                         LUT6 (Prop_lut6_I3_O)        0.124     3.226 r  proc_inst/M_alu_reg/state[15]_i_113/O
-                         net (fo=37, unplaced)        0.977     4.203    proc_inst/M_alu_reg/state[15]_i_113_n_0
-                         LUT5 (Prop_lut5_I0_O)        0.124     4.327 r  proc_inst/M_alu_reg/state[14]_i_69/O
-                         net (fo=1, unplaced)         0.449     4.776    proc_inst/M_alu_reg/state[14]_i_69_n_0
-                         LUT4 (Prop_lut4_I0_O)        0.124     4.900 r  proc_inst/M_alu_reg/state[14]_i_62/O
-                         net (fo=1, unplaced)         0.000     4.900    proc_inst/M_alu_reg/state[14]_i_62_n_0
-                         CARRY4 (Prop_carry4_S[0]_CO[3])
-                                                      0.513     5.413 r  proc_inst/M_alu_reg/state_reg[14]_i_45/CO[3]
-                         net (fo=1, unplaced)         0.009     5.422    proc_inst/M_alu_reg/state_reg[14]_i_45_n_0
-                         CARRY4 (Prop_carry4_CI_CO[3])
-                                                      0.117     5.539 r  proc_inst/M_alu_reg/state_reg[14]_i_39/CO[3]
-                         net (fo=29, unplaced)        0.987     6.526    proc_inst/M_alu_reg/state_reg[14]_i_39_n_0
-                         LUT5 (Prop_lut5_I1_O)        0.124     6.650 f  proc_inst/M_alu_reg/state[13]_i_70/O
-                         net (fo=5, unplaced)         0.477     7.127    proc_inst/M_alu_reg/alu/divD/remainder[1]_0[0]
-                         LUT6 (Prop_lut6_I4_O)        0.124     7.251 r  proc_inst/M_alu_reg/state[13]_i_45/O
-                         net (fo=1, unplaced)         0.333     7.584    proc_inst/M_alu_reg/state[13]_i_45_n_0
-                         CARRY4 (Prop_carry4_DI[0]_CO[3])
-                                                      0.550     8.134 r  proc_inst/M_alu_reg/state_reg[13]_i_31/CO[3]
-                         net (fo=1, unplaced)         0.009     8.143    proc_inst/M_alu_reg/state_reg[13]_i_31_n_0
-                         CARRY4 (Prop_carry4_CI_CO[3])
-                                                      0.117     8.260 r  proc_inst/M_alu_reg/state_reg[13]_i_29/CO[3]
-                         net (fo=21, unplaced)        0.979     9.239    proc_inst/M_alu_reg/state_reg[13]_i_29_n_0
-                         LUT6 (Prop_lut6_I1_O)        0.124     9.363 r  proc_inst/M_alu_reg/state[12]_i_130/O
-                         net (fo=6, unplaced)         0.671    10.034    proc_inst/M_alu_reg/alu/divD/remainder[2]_1[0]
+                         FDRE (Prop_fdre_C_Q)         0.478    -1.076 f  proc_inst/dataAddr/state_reg[14]/Q
+                         net (fo=1, unplaced)         0.741    -0.335    proc_inst/dataAddr/state_reg_n_0_[14]
+                         LUT4 (Prop_lut4_I1_O)        0.295    -0.040 r  proc_inst/dataAddr/a_out2_i_50/O
+                         net (fo=17, unplaced)        0.958     0.918    proc_inst/dataAddr/a_out2_i_50_n_0
+                         LUT6 (Prop_lut6_I2_O)        0.124     1.042 r  proc_inst/dataAddr/sign_21_carry__0_i_25/O
+                         net (fo=2, unplaced)         0.913     1.955    proc_inst/Wstage/state_reg[14]_i_108_0
+                         LUT6 (Prop_lut6_I1_O)        0.124     2.079 f  proc_inst/Wstage/sign_21_carry__0_i_13/O
+                         net (fo=38, unplaced)        0.524     2.603    proc_inst/Wstage/state_reg[13]_10
+                         LUT6 (Prop_lut6_I5_O)        0.124     2.727 r  proc_inst/Wstage/state[14]_i_51/O
+                         net (fo=5, unplaced)         0.667     3.394    proc_inst/Wstage/state[14]_i_51_n_0
                          CARRY4 (Prop_carry4_DI[1]_CO[3])
-                                                      0.520    10.554 r  proc_inst/M_alu_reg/state_reg[11]_i_75/CO[3]
-                         net (fo=1, unplaced)         0.009    10.563    proc_inst/M_alu_reg/state_reg[11]_i_75_n_0
-                         CARRY4 (Prop_carry4_CI_CO[3])
-                                                      0.117    10.680 r  proc_inst/M_alu_reg/state_reg[11]_i_70/CO[3]
-                         net (fo=1, unplaced)         0.000    10.680    proc_inst/M_alu_reg/state_reg[11]_i_70_n_0
-                         CARRY4 (Prop_carry4_CI_CO[3])
-                                                      0.117    10.797 r  proc_inst/M_alu_reg/state_reg[11]_i_69/CO[3]
-                         net (fo=1, unplaced)         0.000    10.797    proc_inst/M_alu_reg/state_reg[11]_i_69_n_0
-                         CARRY4 (Prop_carry4_CI_O[1])
-                                                      0.337    11.134 f  proc_inst/M_alu_reg/state_reg[11]_i_57/O[1]
-                         net (fo=3, unplaced)         0.330    11.464    proc_inst/M_alu_reg/alu/divD/genblk1[2].lc4d/p_reminder[13]
-                         LUT4 (Prop_lut4_I0_O)        0.306    11.770 f  proc_inst/M_alu_reg/state[11]_i_49/O
-                         net (fo=3, unplaced)         0.467    12.237    proc_inst/M_alu_reg/alu/divD/remainder[3]_3[13]
-                         LUT4 (Prop_lut4_I2_O)        0.124    12.361 r  proc_inst/M_alu_reg/state[11]_i_31/O
-                         net (fo=1, unplaced)         0.473    12.834    proc_inst/M_alu_reg/state[11]_i_31_n_0
-                         CARRY4 (Prop_carry4_DI[3]_CO[3])
-                                                      0.396    13.230 r  proc_inst/M_alu_reg/state_reg[11]_i_28/CO[3]
-                         net (fo=23, unplaced)        0.981    14.211    proc_inst/M_alu_reg/state_reg[11]_i_28_n_0
-                         LUT4 (Prop_lut4_I1_O)        0.124    14.335 f  proc_inst/M_alu_reg/state[10]_i_107/O
-                         net (fo=6, unplaced)         0.481    14.816    proc_inst/M_alu_reg/alu/divD/remainder[4]_5[0]
-                         LUT4 (Prop_lut4_I1_O)        0.116    14.932 r  proc_inst/M_alu_reg/state[10]_i_77/O
-                         net (fo=1, unplaced)         0.000    14.932    proc_inst/M_alu_reg/state[10]_i_77_n_0
-                         CARRY4 (Prop_carry4_DI[0]_CO[3])
-                                                      0.576    15.508 r  proc_inst/M_alu_reg/state_reg[10]_i_50/CO[3]
-                         net (fo=1, unplaced)         0.009    15.517    proc_inst/M_alu_reg/state_reg[10]_i_50_n_0
-                         CARRY4 (Prop_carry4_CI_CO[3])
-                                                      0.117    15.634 r  proc_inst/M_alu_reg/state_reg[10]_i_34/CO[3]
-                         net (fo=24, unplaced)        0.982    16.616    proc_inst/M_alu_reg/state_reg[10]_i_34_n_0
-                         LUT4 (Prop_lut4_I1_O)        0.124    16.740 f  proc_inst/M_alu_reg/state[10]_i_118/O
-                         net (fo=5, unplaced)         0.477    17.217    proc_inst/M_alu_reg/alu/divD/remainder[5]_8[0]
-                         LUT4 (Prop_lut4_I1_O)        0.116    17.333 r  proc_inst/M_alu_reg/state[9]_i_47/O
-                         net (fo=1, unplaced)         0.000    17.333    proc_inst/M_alu_reg/state[9]_i_47_n_0
-                         CARRY4 (Prop_carry4_DI[0]_CO[3])
-                                                      0.576    17.909 r  proc_inst/M_alu_reg/state_reg[9]_i_33/CO[3]
-                         net (fo=1, unplaced)         0.009    17.918    proc_inst/M_alu_reg/state_reg[9]_i_33_n_0
-                         CARRY4 (Prop_carry4_CI_CO[3])
-                                                      0.117    18.035 r  proc_inst/M_alu_reg/state_reg[9]_i_31/CO[3]
-                         net (fo=28, unplaced)        0.986    19.021    proc_inst/M_alu_reg/state_reg[9]_i_31_n_0
-                         LUT4 (Prop_lut4_I1_O)        0.124    19.145 r  proc_inst/M_alu_reg/state[8]_i_114/O
-                         net (fo=6, unplaced)         0.481    19.626    proc_inst/M_alu_reg/alu/divD/remainder[6]_10[8]
-                         LUT2 (Prop_lut2_I1_O)        0.116    19.742 f  proc_inst/M_alu_reg/state[8]_i_119/O
-                         net (fo=1, unplaced)         0.449    20.191    proc_inst/M_alu_reg/state[8]_i_119_n_0
-                         LUT6 (Prop_lut6_I0_O)        0.124    20.315 r  proc_inst/M_alu_reg/state[8]_i_98/O
-                         net (fo=1, unplaced)         0.000    20.315    proc_inst/M_alu_reg/state[8]_i_98_n_0
-                         CARRY4 (Prop_carry4_S[0]_CO[3])
-                                                      0.513    20.828 r  proc_inst/M_alu_reg/state_reg[8]_i_82/CO[3]
-                         net (fo=25, unplaced)        0.983    21.811    proc_inst/M_alu_reg/state_reg[8]_i_82_n_0
-                         LUT4 (Prop_lut4_I1_O)        0.124    21.935 r  proc_inst/M_alu_reg/state[10]_i_93/O
-                         net (fo=5, unplaced)         0.667    22.602    proc_inst/M_alu_reg/alu/divD/remainder[7]_13[0]
+                                                      0.520     3.914 r  proc_inst/Wstage/state_reg[15]_i_91/CO[3]
+                         net (fo=14, unplaced)        0.969     4.883    proc_inst/Mstage/state[13]_i_51_0[0]
+                         LUT6 (Prop_lut6_I4_O)        0.124     5.007 r  proc_inst/Mstage/state[13]_i_80/O
+                         net (fo=1, unplaced)         0.449     5.456    proc_inst/Wstage/state_reg[13]_i_50_0
+                         LUT6 (Prop_lut6_I0_O)        0.124     5.580 r  proc_inst/Wstage/state[13]_i_51/O
+                         net (fo=3, unplaced)         0.657     6.237    proc_inst/Wstage/alu/divD/remainder[0]_34[0]
                          CARRY4 (Prop_carry4_DI[1]_CO[3])
-                                                      0.520    23.122 r  proc_inst/M_alu_reg/state_reg[10]_i_68/CO[3]
-                         net (fo=1, unplaced)         0.009    23.131    proc_inst/M_alu_reg/state_reg[10]_i_68_n_0
+                                                      0.520     6.757 r  proc_inst/Wstage/state_reg[13]_i_50/CO[3]
+                         net (fo=1, unplaced)         0.009     6.766    proc_inst/Wstage/state_reg[13]_i_50_n_0
                          CARRY4 (Prop_carry4_CI_CO[3])
-                                                      0.117    23.248 r  proc_inst/M_alu_reg/state_reg[6]_i_61/CO[3]
-                         net (fo=1, unplaced)         0.000    23.248    proc_inst/M_alu_reg/state_reg[6]_i_61_n_0
-                         CARRY4 (Prop_carry4_CI_CO[3])
-                                                      0.117    23.365 r  proc_inst/M_alu_reg/state_reg[6]_i_60/CO[3]
-                         net (fo=1, unplaced)         0.000    23.365    proc_inst/M_alu_reg/state_reg[6]_i_60_n_0
-                         CARRY4 (Prop_carry4_CI_O[1])
-                                                      0.337    23.702 f  proc_inst/M_alu_reg/state_reg[6]_i_51/O[1]
-                         net (fo=3, unplaced)         0.330    24.032    proc_inst/M_alu_reg/alu/divD/genblk1[7].lc4d/p_reminder[13]
-                         LUT4 (Prop_lut4_I0_O)        0.306    24.338 f  proc_inst/M_alu_reg/state[6]_i_43/O
-                         net (fo=3, unplaced)         0.467    24.805    proc_inst/M_alu_reg/alu/divD/remainder[8]_16[13]
-                         LUT4 (Prop_lut4_I2_O)        0.124    24.929 r  proc_inst/M_alu_reg/state[6]_i_26/O
-                         net (fo=1, unplaced)         0.473    25.402    proc_inst/M_alu_reg/state[6]_i_26_n_0
-                         CARRY4 (Prop_carry4_DI[3]_CO[3])
-                                                      0.396    25.798 r  proc_inst/M_alu_reg/state_reg[6]_i_23/CO[3]
-                         net (fo=31, unplaced)        0.988    26.786    proc_inst/M_alu_reg/state_reg[6]_i_23_n_0
-                         LUT4 (Prop_lut4_I1_O)        0.124    26.910 r  proc_inst/M_alu_reg/state[12]_i_93/O
-                         net (fo=5, unplaced)         0.477    27.387    proc_inst/M_alu_reg/alu/divD/remainder[9]_19[5]
-                         LUT2 (Prop_lut2_I0_O)        0.116    27.503 r  proc_inst/M_alu_reg/state[5]_i_50/O
-                         net (fo=1, unplaced)         0.449    27.952    proc_inst/M_alu_reg/state[5]_i_50_n_0
-                         LUT6 (Prop_lut6_I5_O)        0.124    28.076 r  proc_inst/M_alu_reg/state[5]_i_31/O
-                         net (fo=1, unplaced)         0.000    28.076    proc_inst/M_alu_reg/state[5]_i_31_n_0
-                         CARRY4 (Prop_carry4_S[3]_CO[3])
-                                                      0.376    28.452 r  proc_inst/M_alu_reg/state_reg[5]_i_18/CO[3]
-                         net (fo=1, unplaced)         0.009    28.461    proc_inst/M_alu_reg/state_reg[5]_i_18_n_0
-                         CARRY4 (Prop_carry4_CI_CO[3])
-                                                      0.117    28.578 r  proc_inst/M_alu_reg/state_reg[5]_i_16/CO[3]
-                         net (fo=27, unplaced)        0.985    29.563    proc_inst/M_alu_reg/state_reg[5]_i_16_n_0
-                         LUT4 (Prop_lut4_I1_O)        0.124    29.687 r  proc_inst/M_alu_reg/state[10]_i_61/O
-                         net (fo=5, unplaced)         0.667    30.354    proc_inst/M_alu_reg/alu/divD/remainder[10]_21[0]
-                         CARRY4 (Prop_carry4_DI[1]_CO[3])
-                                                      0.520    30.874 r  proc_inst/M_alu_reg/state_reg[10]_i_35/CO[3]
-                         net (fo=1, unplaced)         0.009    30.883    proc_inst/M_alu_reg/state_reg[10]_i_35_n_0
-                         CARRY4 (Prop_carry4_CI_CO[3])
-                                                      0.117    31.000 r  proc_inst/M_alu_reg/state_reg[10]_i_31/CO[3]
-                         net (fo=1, unplaced)         0.000    31.000    proc_inst/M_alu_reg/state_reg[10]_i_31_n_0
+                                                      0.117     6.883 r  proc_inst/Wstage/state_reg[13]_i_49/CO[3]
+                         net (fo=1, unplaced)         0.000     6.883    proc_inst/Wstage/state_reg[13]_i_49_n_0
                          CARRY4 (Prop_carry4_CI_O[2])
-                                                      0.256    31.256 f  proc_inst/M_alu_reg/state_reg[15]_i_145/O[2]
-                         net (fo=2, unplaced)         0.463    31.719    proc_inst/M_alu_reg/alu/divD/genblk1[10].lc4d/p_reminder[10]
-                         LUT4 (Prop_lut4_I0_O)        0.301    32.020 f  proc_inst/M_alu_reg/state[15]_i_124/O
-                         net (fo=6, unplaced)         0.451    32.471    proc_inst/M_alu_reg/alu/divD/remainder[11]_24[10]
-                         LUT4 (Prop_lut4_I1_O)        0.124    32.595 r  proc_inst/M_alu_reg/state[3]_i_51/O
-                         net (fo=1, unplaced)         0.639    33.234    proc_inst/M_alu_reg/state[3]_i_51_n_0
-                         CARRY4 (Prop_carry4_DI[1]_CO[3])
-                                                      0.520    33.754 r  proc_inst/M_alu_reg/state_reg[3]_i_43/CO[3]
-                         net (fo=31, unplaced)        0.988    34.742    proc_inst/M_alu_reg/state_reg[3]_i_43_n_0
-                         LUT5 (Prop_lut5_I1_O)        0.124    34.866 f  proc_inst/M_alu_reg/state[12]_i_51/O
-                         net (fo=4, unplaced)         0.473    35.339    proc_inst/M_alu_reg/alu/divD/remainder[12]_26[9]
-                         LUT4 (Prop_lut4_I3_O)        0.124    35.463 r  proc_inst/M_alu_reg/state[15]_i_88/O
-                         net (fo=1, unplaced)         0.639    36.102    proc_inst/M_alu_reg/state[15]_i_88_n_0
-                         CARRY4 (Prop_carry4_DI[1]_CO[3])
-                                                      0.520    36.622 r  proc_inst/M_alu_reg/state_reg[15]_i_49/CO[3]
-                         net (fo=25, unplaced)        0.983    37.605    proc_inst/M_alu_reg/state_reg[15]_i_49_n_0
-                         LUT4 (Prop_lut4_I1_O)        0.124    37.729 r  proc_inst/M_alu_reg/state[2]_i_16/O
-                         net (fo=5, unplaced)         0.667    38.396    proc_inst/M_alu_reg/alu/divD/remainder[13]_29[0]
-                         CARRY4 (Prop_carry4_DI[1]_CO[3])
-                                                      0.520    38.916 r  proc_inst/M_alu_reg/state_reg[8]_i_56/CO[3]
-                         net (fo=1, unplaced)         0.009    38.925    proc_inst/M_alu_reg/state_reg[8]_i_56_n_0
-                         CARRY4 (Prop_carry4_CI_CO[3])
-                                                      0.117    39.042 r  proc_inst/M_alu_reg/state_reg[8]_i_35/CO[3]
-                         net (fo=1, unplaced)         0.000    39.042    proc_inst/M_alu_reg/state_reg[8]_i_35_n_0
+                                                      0.256     7.139 r  proc_inst/Wstage/state_reg[13]_i_47/O[2]
+                         net (fo=1, unplaced)         0.452     7.591    proc_inst/Wstage/alu/divD/genblk1[0].lc4d/p_reminder[10]
+                         LUT5 (Prop_lut5_I0_O)        0.301     7.892 r  proc_inst/Wstage/state[13]_i_32/O
+                         net (fo=4, unplaced)         0.473     8.365    proc_inst/Wstage/alu/divD/remainder[1]_1[10]
+                         LUT6 (Prop_lut6_I5_O)        0.124     8.489 f  proc_inst/Wstage/state[13]_i_38/O
+                         net (fo=2, unplaced)         0.460     8.949    proc_inst/Wstage/state[13]_i_38_n_0
+                         LUT3 (Prop_lut3_I0_O)        0.124     9.073 r  proc_inst/Wstage/state[13]_i_18/O
+                         net (fo=1, unplaced)         0.000     9.073    proc_inst/Wstage/state[13]_i_18_n_0
+                         CARRY4 (Prop_carry4_S[1]_CO[3])
+                                                      0.533     9.606 r  proc_inst/Wstage/state_reg[13]_i_10/CO[3]
+                         net (fo=22, unplaced)        0.980    10.586    proc_inst/Wstage/state_reg[13]_i_10_n_0
+                         LUT4 (Prop_lut4_I1_O)        0.124    10.710 r  proc_inst/Wstage/state[12]_i_112/O
+                         net (fo=3, unplaced)         0.467    11.177    proc_inst/Wstage/alu/divD/remainder[2]_2[10]
+                         LUT6 (Prop_lut6_I5_O)        0.124    11.301 f  proc_inst/Wstage/state[12]_i_118/O
+                         net (fo=2, unplaced)         0.460    11.761    proc_inst/Wstage/state[12]_i_118_n_0
+                         LUT3 (Prop_lut3_I0_O)        0.124    11.885 r  proc_inst/Wstage/state[12]_i_90/O
+                         net (fo=1, unplaced)         0.000    11.885    proc_inst/Wstage/state[12]_i_90_n_0
+                         CARRY4 (Prop_carry4_S[1]_CO[3])
+                                                      0.533    12.418 r  proc_inst/Wstage/state_reg[12]_i_77/CO[3]
+                         net (fo=26, unplaced)        0.787    13.205    proc_inst/Wstage/state_reg[12]_i_77_n_0
+                         LUT4 (Prop_lut4_I1_O)        0.124    13.329 r  proc_inst/Wstage/state[11]_i_174/O
+                         net (fo=3, unplaced)         0.467    13.796    proc_inst/Wstage/alu/divD/remainder[3]_4[8]
+                         LUT6 (Prop_lut6_I5_O)        0.124    13.920 f  proc_inst/Wstage/state[11]_i_179/O
+                         net (fo=2, unplaced)         0.460    14.380    proc_inst/Wstage/state[11]_i_179_n_0
+                         LUT1 (Prop_lut1_I0_O)        0.124    14.504 r  proc_inst/Wstage/state[10]_i_97/O
+                         net (fo=1, unplaced)         0.000    14.504    proc_inst/Wstage/state[10]_i_97_n_0
+                         CARRY4 (Prop_carry4_S[1]_CO[3])
+                                                      0.533    15.037 r  proc_inst/Wstage/state_reg[10]_i_79/CO[3]
+                         net (fo=1, unplaced)         0.000    15.037    proc_inst/Wstage/state_reg[10]_i_79_n_0
                          CARRY4 (Prop_carry4_CI_O[1])
-                                                      0.337    39.379 f  proc_inst/M_alu_reg/state_reg[12]_i_16/O[1]
-                         net (fo=2, unplaced)         0.622    40.001    proc_inst/M_alu_reg/alu/divD/genblk1[13].lc4d/p_reminder[9]
-                         LUT4 (Prop_lut4_I0_O)        0.306    40.307 f  proc_inst/M_alu_reg/state[8]_i_21/O
-                         net (fo=4, unplaced)         0.473    40.780    proc_inst/M_alu_reg/alu/divD/remainder[14]_32[9]
-                         LUT4 (Prop_lut4_I3_O)        0.117    40.897 r  proc_inst/M_alu_reg/state[8]_i_29/O
-                         net (fo=1, unplaced)         0.000    40.897    proc_inst/M_alu_reg/state[8]_i_29_n_0
+                                                      0.337    15.374 f  proc_inst/Wstage/state_reg[10]_i_49/O[1]
+                         net (fo=1, unplaced)         0.611    15.985    proc_inst/Wstage/alu/divD/genblk1[3].lc4d/p_reminder[13]
+                         LUT4 (Prop_lut4_I0_O)        0.306    16.291 f  proc_inst/Wstage/state[10]_i_57/O
+                         net (fo=5, unplaced)         0.477    16.768    proc_inst/Wstage/alu/divD/remainder[4]_6[13]
+                         LUT6 (Prop_lut6_I0_O)        0.124    16.892 f  proc_inst/Wstage/state[10]_i_50/O
+                         net (fo=1, unplaced)         0.449    17.341    proc_inst/Wstage/state[10]_i_50_n_0
+                         LUT6 (Prop_lut6_I5_O)        0.124    17.465 r  proc_inst/Wstage/state[10]_i_30/O
+                         net (fo=1, unplaced)         0.473    17.938    proc_inst/Wstage/state[10]_i_30_n_0
+                         CARRY4 (Prop_carry4_DI[3]_CO[3])
+                                                      0.396    18.334 r  proc_inst/Wstage/state_reg[10]_i_27/CO[3]
+                         net (fo=29, unplaced)        0.987    19.321    proc_inst/Wstage/state_reg[10]_i_27_n_0
+                         LUT4 (Prop_lut4_I1_O)        0.124    19.445 r  proc_inst/Wstage/state[9]_i_33/O
+                         net (fo=3, unplaced)         0.467    19.912    proc_inst/Wstage/alu/divD/remainder[5]_9[8]
+                         LUT6 (Prop_lut6_I5_O)        0.124    20.036 f  proc_inst/Wstage/state[9]_i_38/O
+                         net (fo=2, unplaced)         0.460    20.496    proc_inst/Wstage/state[9]_i_38_n_0
+                         LUT1 (Prop_lut1_I0_O)        0.124    20.620 r  proc_inst/Wstage/state[8]_i_136/O
+                         net (fo=1, unplaced)         0.000    20.620    proc_inst/Wstage/state[8]_i_136_n_0
+                         CARRY4 (Prop_carry4_S[1]_CO[3])
+                                                      0.533    21.153 r  proc_inst/Wstage/state_reg[8]_i_118/CO[3]
+                         net (fo=1, unplaced)         0.000    21.153    proc_inst/Wstage/state_reg[8]_i_118_n_0
+                         CARRY4 (Prop_carry4_CI_O[1])
+                                                      0.337    21.490 f  proc_inst/Wstage/state_reg[8]_i_93/O[1]
+                         net (fo=1, unplaced)         0.312    21.802    proc_inst/Wstage/alu/divD/genblk1[5].lc4d/p_reminder[13]
+                         LUT4 (Prop_lut4_I0_O)        0.306    22.108 f  proc_inst/Wstage/state[8]_i_101/O
+                         net (fo=5, unplaced)         0.477    22.585    proc_inst/Wstage/alu/divD/remainder[6]_11[13]
+                         LUT6 (Prop_lut6_I0_O)        0.124    22.709 f  proc_inst/Wstage/state[8]_i_94/O
+                         net (fo=1, unplaced)         0.449    23.158    proc_inst/Wstage/state[8]_i_94_n_0
+                         LUT6 (Prop_lut6_I5_O)        0.124    23.282 r  proc_inst/Wstage/state[8]_i_67/O
+                         net (fo=1, unplaced)         0.473    23.755    proc_inst/Wstage/state[8]_i_67_n_0
+                         CARRY4 (Prop_carry4_DI[3]_CO[3])
+                                                      0.396    24.151 r  proc_inst/Wstage/state_reg[8]_i_57/CO[3]
+                         net (fo=28, unplaced)        0.986    25.137    proc_inst/Wstage/state_reg[8]_i_57_n_0
+                         LUT4 (Prop_lut4_I1_O)        0.124    25.261 r  proc_inst/Wstage/state[7]_i_44/O
+                         net (fo=3, unplaced)         0.467    25.728    proc_inst/Wstage/alu/divD/remainder[7]_0[10]
+                         LUT6 (Prop_lut6_I5_O)        0.124    25.852 f  proc_inst/Wstage/state[7]_i_50/O
+                         net (fo=2, unplaced)         0.460    26.312    proc_inst/Wstage/state[7]_i_50_n_0
+                         LUT3 (Prop_lut3_I0_O)        0.124    26.436 r  proc_inst/Wstage/state[7]_i_30/O
+                         net (fo=1, unplaced)         0.000    26.436    proc_inst/Wstage/state[7]_i_30_n_0
+                         CARRY4 (Prop_carry4_S[1]_CO[3])
+                                                      0.533    26.969 r  proc_inst/Wstage/state_reg[7]_i_21/CO[3]
+                         net (fo=31, unplaced)        0.988    27.957    proc_inst/Wstage/state_reg[7]_i_21_n_0
+                         LUT4 (Prop_lut4_I1_O)        0.124    28.081 r  proc_inst/Wstage/state[6]_i_62/O
+                         net (fo=3, unplaced)         0.467    28.548    proc_inst/Wstage/alu/divD/remainder[8]_15[10]
+                         LUT6 (Prop_lut6_I5_O)        0.124    28.672 f  proc_inst/Wstage/state[6]_i_68/O
+                         net (fo=2, unplaced)         0.460    29.132    proc_inst/Wstage/state[6]_i_68_n_0
+                         LUT3 (Prop_lut3_I0_O)        0.124    29.256 r  proc_inst/Wstage/state[6]_i_41/O
+                         net (fo=1, unplaced)         0.000    29.256    proc_inst/Wstage/state[6]_i_41_n_0
+                         CARRY4 (Prop_carry4_S[1]_CO[3])
+                                                      0.533    29.789 r  proc_inst/Wstage/state_reg[6]_i_30/CO[3]
+                         net (fo=31, unplaced)        0.988    30.777    proc_inst/Wstage/state_reg[6]_i_30_n_0
+                         LUT5 (Prop_lut5_I1_O)        0.124    30.901 f  proc_inst/Wstage/state[15]_i_89/O
+                         net (fo=5, unplaced)         0.477    31.378    proc_inst/Wstage/alu/divD/remainder[9]_18[9]
+                         LUT4 (Prop_lut4_I3_O)        0.124    31.502 r  proc_inst/Wstage/state[5]_i_22/O
+                         net (fo=1, unplaced)         0.639    32.141    proc_inst/Wstage/state[5]_i_22_n_0
                          CARRY4 (Prop_carry4_DI[1]_CO[3])
-                                                      0.547    41.444 r  proc_inst/M_alu_reg/state_reg[8]_i_9/CO[3]
-                         net (fo=17, unplaced)        0.974    42.418    proc_inst/M_alu_reg/CO[0]
-                         LUT6 (Prop_lut6_I3_O)        0.124    42.542 r  proc_inst/M_alu_reg/state[0]_i_24/O
-                         net (fo=1, unplaced)         0.449    42.991    proc_inst/X_insn_reg/state[0]_i_7_1
-                         LUT6 (Prop_lut6_I1_O)        0.124    43.115 r  proc_inst/X_insn_reg/state[0]_i_14/O
-                         net (fo=1, unplaced)         0.449    43.564    proc_inst/X_insn_reg/state[0]_i_14_n_0
-                         LUT6 (Prop_lut6_I1_O)        0.124    43.688 r  proc_inst/X_insn_reg/state[0]_i_7/O
-                         net (fo=1, unplaced)         0.449    44.137    proc_inst/X_insn_reg/state[0]_i_7_n_0
-                         LUT6 (Prop_lut6_I5_O)        0.124    44.261 r  proc_inst/X_insn_reg/state[0]_i_3/O
-                         net (fo=1, unplaced)         0.000    44.261    proc_inst/X_insn_reg/state[0]_i_3_n_0
-                         MUXF7 (Prop_muxf7_I1_O)      0.247    44.508 r  proc_inst/X_insn_reg/state_reg[0]_i_1/O
-                         net (fo=1, unplaced)         0.000    44.508    proc_inst/M_alu_reg/o_ALU[0]
-                         FDRE                                         r  proc_inst/M_alu_reg/state_reg[0]/D
+                                                      0.520    32.661 r  proc_inst/Wstage/state_reg[5]_i_16/CO[3]
+                         net (fo=30, unplaced)        0.988    33.649    proc_inst/Wstage/state_reg[5]_i_16_n_0
+                         LUT4 (Prop_lut4_I1_O)        0.124    33.773 r  proc_inst/Wstage/state[4]_i_51/O
+                         net (fo=3, unplaced)         0.467    34.240    proc_inst/Wstage/alu/divD/remainder[10]_20[10]
+                         LUT6 (Prop_lut6_I5_O)        0.124    34.364 f  proc_inst/Wstage/state[4]_i_59/O
+                         net (fo=2, unplaced)         0.460    34.824    proc_inst/Wstage/state[4]_i_59_n_0
+                         LUT3 (Prop_lut3_I0_O)        0.124    34.948 r  proc_inst/Wstage/state[4]_i_33/O
+                         net (fo=1, unplaced)         0.000    34.948    proc_inst/Wstage/state[4]_i_33_n_0
+                         CARRY4 (Prop_carry4_S[1]_CO[3])
+                                                      0.533    35.481 r  proc_inst/Wstage/state_reg[4]_i_15/CO[3]
+                         net (fo=32, unplaced)        0.989    36.470    proc_inst/Wstage/state_reg[4]_i_15_n_0
+                         LUT4 (Prop_lut4_I1_O)        0.124    36.594 r  proc_inst/Wstage/state[12]_i_80/O
+                         net (fo=5, unplaced)         0.477    37.071    proc_inst/Wstage/alu/divD/remainder[11]_23[6]
+                         LUT6 (Prop_lut6_I0_O)        0.124    37.195 r  proc_inst/Wstage/state[11]_i_124/O
+                         net (fo=1, unplaced)         0.449    37.644    proc_inst/Wstage/state[11]_i_124_n_0
+                         LUT6 (Prop_lut6_I0_O)        0.124    37.768 r  proc_inst/Wstage/state[11]_i_105/O
+                         net (fo=1, unplaced)         0.000    37.768    proc_inst/Wstage/state[11]_i_105_n_0
+                         CARRY4 (Prop_carry4_S[3]_CO[3])
+                                                      0.376    38.144 r  proc_inst/Wstage/state_reg[11]_i_80/CO[3]
+                         net (fo=1, unplaced)         0.009    38.153    proc_inst/Wstage/state_reg[11]_i_80_n_0
+                         CARRY4 (Prop_carry4_CI_CO[3])
+                                                      0.117    38.270 r  proc_inst/Wstage/state_reg[11]_i_63/CO[3]
+                         net (fo=29, unplaced)        0.987    39.257    proc_inst/Wstage/state_reg[11]_i_63_n_0
+                         LUT5 (Prop_lut5_I1_O)        0.124    39.381 f  proc_inst/Wstage/state[12]_i_49/O
+                         net (fo=5, unplaced)         0.477    39.858    proc_inst/Wstage/alu/divD/remainder[12]_25[9]
+                         LUT4 (Prop_lut4_I3_O)        0.124    39.982 r  proc_inst/Wstage/state[15]_i_52/O
+                         net (fo=1, unplaced)         0.639    40.621    proc_inst/Wstage/state[15]_i_52_n_0
+                         CARRY4 (Prop_carry4_DI[1]_CO[3])
+                                                      0.520    41.141 r  proc_inst/Wstage/state_reg[15]_i_33/CO[3]
+                         net (fo=29, unplaced)        0.790    41.931    proc_inst/Wstage/state_reg[15]_i_33_n_0
+                         LUT4 (Prop_lut4_I1_O)        0.124    42.055 f  proc_inst/Wstage/state[11]_i_73/O
+                         net (fo=4, unplaced)         0.473    42.528    proc_inst/Wstage/alu/divD/remainder[13]_28[13]
+                         LUT6 (Prop_lut6_I0_O)        0.124    42.652 f  proc_inst/Wstage/state[12]_i_66/O
+                         net (fo=1, unplaced)         0.449    43.101    proc_inst/Wstage/state[12]_i_66_n_0
+                         LUT6 (Prop_lut6_I5_O)        0.124    43.225 r  proc_inst/Wstage/state[12]_i_40/O
+                         net (fo=1, unplaced)         0.473    43.698    proc_inst/Wstage/state[12]_i_40_n_0
+                         CARRY4 (Prop_carry4_DI[3]_CO[3])
+                                                      0.396    44.094 r  proc_inst/Wstage/state_reg[12]_i_21/CO[3]
+                         net (fo=28, unplaced)        0.986    45.080    proc_inst/Wstage/state_reg[12]_i_21_n_0
+                         LUT4 (Prop_lut4_I1_O)        0.124    45.204 f  proc_inst/Wstage/state[3]_i_18/O
+                         net (fo=5, unplaced)         0.477    45.681    proc_inst/Wstage/alu/divD/remainder[14]_31[0]
+                         LUT4 (Prop_lut4_I1_O)        0.116    45.797 r  proc_inst/Wstage/state[11]_i_55/O
+                         net (fo=1, unplaced)         0.000    45.797    proc_inst/Wstage/state[11]_i_55_n_0
+                         CARRY4 (Prop_carry4_DI[0]_CO[3])
+                                                      0.576    46.373 r  proc_inst/Wstage/state_reg[11]_i_21/CO[3]
+                         net (fo=1, unplaced)         0.009    46.382    proc_inst/Wstage/state_reg[11]_i_21_n_0
+                         CARRY4 (Prop_carry4_CI_CO[3])
+                                                      0.117    46.499 r  proc_inst/Wstage/state_reg[11]_i_7/CO[3]
+                         net (fo=18, unplaced)        0.975    47.474    proc_inst/Wstage/CO[0]
+                         LUT6 (Prop_lut6_I2_O)        0.124    47.598 r  proc_inst/Wstage/state[0]_i_24/O
+                         net (fo=1, unplaced)         0.449    48.047    proc_inst/X_insn_reg/state[0]_i_7_1
+                         LUT6 (Prop_lut6_I5_O)        0.124    48.171 f  proc_inst/X_insn_reg/state[0]_i_14/O
+                         net (fo=1, unplaced)         0.449    48.620    proc_inst/X_insn_reg/state[0]_i_14_n_0
+                         LUT6 (Prop_lut6_I5_O)        0.124    48.744 r  proc_inst/X_insn_reg/state[0]_i_7/O
+                         net (fo=1, unplaced)         0.449    49.193    proc_inst/X_insn_reg/state[0]_i_7_n_0
+                         LUT6 (Prop_lut6_I5_O)        0.124    49.317 r  proc_inst/X_insn_reg/state[0]_i_3/O
+                         net (fo=1, unplaced)         0.000    49.317    proc_inst/X_insn_reg/state[0]_i_3_n_0
+                         MUXF7 (Prop_muxf7_I1_O)      0.247    49.564 r  proc_inst/X_insn_reg/state_reg[0]_i_1/O
+                         net (fo=2, unplaced)         0.463    50.027    proc_inst/X_insn_reg/o_ALU[0]
+                         LUT4 (Prop_lut4_I0_O)        0.298    50.325 r  proc_inst/X_insn_reg/state[0]_i_1/O
+                         net (fo=1, unplaced)         0.000    50.325    proc_inst/pc_reg/state_reg[15]_2[0]
+                         FDRE                                         r  proc_inst/pc_reg/state_reg[0]/D
   -------------------------------------------------------------------    -------------------
 
                          (clock clk_processor_design_1_clk_wiz_0_0 rise edge)
@@ -438,16 +442,16 @@ Slack (MET) :             11.026ns  (required time - arrival time)
                                                      -5.378    53.731 r  mmcm0/mmcm_adv_inst/CLKOUT0
                          net (fo=1, unplaced)         0.760    54.491    mmcm0/clk_processor_design_1_clk_wiz_0_0
                          BUFG (Prop_bufg_I_O)         0.091    54.582 r  mmcm0/clkout1_buf/O
-                         net (fo=491, unplaced)       0.439    55.021    proc_inst/M_alu_reg/clk_processor
-                         FDRE                                         r  proc_inst/M_alu_reg/state_reg[0]/C
+                         net (fo=590, unplaced)       0.439    55.021    proc_inst/pc_reg/clk_processor
+                         FDRE                                         r  proc_inst/pc_reg/state_reg[0]/C
                          clock pessimism              0.531    55.551    
                          clock uncertainty           -0.097    55.455    
-                         FDRE (Setup_fdre_C_D)        0.080    55.535    proc_inst/M_alu_reg/state_reg[0]
+                         FDRE (Setup_fdre_C_D)        0.044    55.499    proc_inst/pc_reg/state_reg[0]
   -------------------------------------------------------------------
-                         required time                         55.535    
-                         arrival time                         -44.508    
+                         required time                         55.499    
+                         arrival time                         -50.325    
   -------------------------------------------------------------------
-                         slack                                 11.026    
+                         slack                                  5.173    
 
 
 
@@ -455,16 +459,16 @@ Slack (MET) :             11.026ns  (required time - arrival time)
 
 Min Delay Paths
 --------------------------------------------------------------------------------------
-Slack (MET) :             0.132ns  (arrival time - required time)
-  Source:                 memory/memory/i1out_reg/state_reg[0]/C
+Slack (MET) :             0.140ns  (arrival time - required time)
+  Source:                 proc_inst/X_pc_reg/state_reg[0]/C
                             (rising edge-triggered cell FDRE clocked by clk_processor_design_1_clk_wiz_0_0  {rise@0.000ns fall@28.625ns period=57.250ns})
-  Destination:            proc_inst/D_insn_reg/state_reg[0]/D
+  Destination:            proc_inst/M_next_pc_reg/state_reg[0]/D
                             (rising edge-triggered cell FDRE clocked by clk_processor_design_1_clk_wiz_0_0  {rise@0.000ns fall@28.625ns period=57.250ns})
   Path Group:             clk_processor_design_1_clk_wiz_0_0
   Path Type:              Hold (Min at Fast Process Corner)
   Requirement:            0.000ns  (clk_processor_design_1_clk_wiz_0_0 rise@0.000ns - clk_processor_design_1_clk_wiz_0_0 rise@0.000ns)
-  Data Path Delay:        0.376ns  (logic 0.245ns (65.144%)  route 0.131ns (34.856%))
-  Logic Levels:           1  (LUT4=1)
+  Data Path Delay:        0.384ns  (logic 0.245ns (63.855%)  route 0.139ns (36.145%))
+  Logic Levels:           1  (LUT1=1)
   Clock Path Skew:        0.145ns (DCD - SCD - CPR)
     Destination Clock Delay (DCD):    -1.062ns
     Source Clock Delay      (SCD):    -0.927ns
@@ -482,14 +486,14 @@ Slack (MET) :             0.132ns  (arrival time - required time)
                                                      -1.776    -1.404 r  mmcm0/mmcm_adv_inst/CLKOUT0
                          net (fo=1, unplaced)         0.337    -1.067    mmcm0/clk_processor_design_1_clk_wiz_0_0
                          BUFG (Prop_bufg_I_O)         0.026    -1.041 r  mmcm0/clkout1_buf/O
-                         net (fo=491, unplaced)       0.114    -0.927    memory/memory/i1out_reg/clk_processor
-                         FDRE                                         r  memory/memory/i1out_reg/state_reg[0]/C
+                         net (fo=590, unplaced)       0.114    -0.927    proc_inst/X_pc_reg/clk_processor
+                         FDRE                                         r  proc_inst/X_pc_reg/state_reg[0]/C
   -------------------------------------------------------------------    -------------------
-                         FDRE (Prop_fdre_C_Q)         0.147    -0.780 r  memory/memory/i1out_reg/state_reg[0]/Q
-                         net (fo=1, unplaced)         0.131    -0.649    memory/memory/i1out_reg/state_reg_n_0_[0]
-                         LUT4 (Prop_lut4_I3_O)        0.098    -0.551 r  memory/memory/i1out_reg/state[0]_i_1__0/O
-                         net (fo=1, unplaced)         0.000    -0.551    proc_inst/D_insn_reg/state_reg[0]_0
-                         FDRE                                         r  proc_inst/D_insn_reg/state_reg[0]/D
+                         FDRE (Prop_fdre_C_Q)         0.147    -0.780 f  proc_inst/X_pc_reg/state_reg[0]/Q
+                         net (fo=3, unplaced)         0.139    -0.641    proc_inst/X_pc_reg/pc_X[0]
+                         LUT1 (Prop_lut1_I0_O)        0.098    -0.543 r  proc_inst/X_pc_reg/state[0]_i_1__10/O
+                         net (fo=1, unplaced)         0.000    -0.543    proc_inst/M_next_pc_reg/next_pc_X[0]
+                         FDRE                                         r  proc_inst/M_next_pc_reg/state_reg[0]/D
   -------------------------------------------------------------------    -------------------
 
                          (clock clk_processor_design_1_clk_wiz_0_0 rise edge)
@@ -502,15 +506,15 @@ Slack (MET) :             0.132ns  (arrival time - required time)
                                                      -2.410    -1.705 r  mmcm0/mmcm_adv_inst/CLKOUT0
                          net (fo=1, unplaced)         0.355    -1.350    mmcm0/clk_processor_design_1_clk_wiz_0_0
                          BUFG (Prop_bufg_I_O)         0.029    -1.321 r  mmcm0/clkout1_buf/O
-                         net (fo=491, unplaced)       0.259    -1.062    proc_inst/D_insn_reg/clk_processor
-                         FDRE                                         r  proc_inst/D_insn_reg/state_reg[0]/C
+                         net (fo=590, unplaced)       0.259    -1.062    proc_inst/M_next_pc_reg/clk_processor
+                         FDRE                                         r  proc_inst/M_next_pc_reg/state_reg[0]/C
                          clock pessimism              0.280    -0.782    
-                         FDRE (Hold_fdre_C_D)         0.099    -0.683    proc_inst/D_insn_reg/state_reg[0]
+                         FDRE (Hold_fdre_C_D)         0.099    -0.683    proc_inst/M_next_pc_reg/state_reg[0]
   -------------------------------------------------------------------
                          required time                          0.683    
-                         arrival time                          -0.551    
+                         arrival time                          -0.543    
   -------------------------------------------------------------------
-                         slack                                  0.132    
+                         slack                                  0.140    
 
 
 
@@ -526,8 +530,8 @@ Sources:            { mmcm0/mmcm_adv_inst/CLKOUT0 }
 Check Type        Corner  Lib Pin             Reference Pin  Required(ns)  Actual(ns)  Slack(ns)  Location  Pin
 Min Period        n/a     RAMB36E1/CLKARDCLK  n/a            3.363         57.250      53.887               memory/memory/IDRAM_reg_0_13/CLKARDCLK
 Max Period        n/a     MMCME2_ADV/CLKOUT0  n/a            213.360       57.250      156.110              mmcm0/mmcm_adv_inst/CLKOUT0
-Low Pulse Width   Fast    SRL16E/CLK          n/a            0.980         28.625      27.645               proc_inst/M_regfile_data_reg/state_reg[0]_srl2/CLK
-High Pulse Width  Slow    SRL16E/CLK          n/a            0.980         28.625      27.645               proc_inst/M_regfile_data_reg/state_reg[0]_srl2/CLK
+Low Pulse Width   Fast    FDRE/C              n/a            0.500         28.625      28.125               clk_pulse/pulse_reg/state_reg[0]/C
+High Pulse Width  Slow    FDRE/C              n/a            0.500         28.625      28.125               clk_pulse/pulse_reg/state_reg[0]/C
 
 
 
@@ -781,7 +785,7 @@ Slack (MET) :             16.660ns  (required time - arrival time)
   -------------------------------------------------------------------    -------------------
                          FDRE (Prop_fdre_C_Q)         0.478    18.924 r  vga_cntrl_inst/svga_t_g/PIXEL_COUNT_reg[6]/Q
                          net (fo=16, unplaced)        0.795    19.719    vga_cntrl_inst/svga_t_g/pixel_count[6]
-                         LUT3 (Prop_lut3_I0_O)        0.295    20.014 r  vga_cntrl_inst/svga_t_g/VRAM_reg_0_i_2/O
+                         LUT3 (Prop_lut3_I0_O)        0.295    20.014 r  vga_cntrl_inst/svga_t_g/VRAM_reg_0_i_16/O
                          net (fo=8, unplaced)         0.800    20.814    memory/memory/vaddr[6]
                          RAMB36E1                                     r  memory/memory/VRAM_reg_0/ADDRBWRADDR[7]
   -------------------------------------------------------------------    -------------------

@@ -45,9 +45,7 @@ module lc4_processor
    */
    
    wire [1:0] in_stall = 2'b00;    
-   // only mx wx bypass for lab4a
-
-   // 16'h3000
+   wire [15:0] nop_insn = 16'h0000;
 
    //____________________________________FETCH___________________________________________
 
@@ -59,20 +57,22 @@ module lc4_processor
    Nbit_reg #(16, 16'h8200) pc_reg (.in(next_pc), .out(pc), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
    // propagate next_pc
-   assign next_pc = pc + 1;
+   assign next_pc = (ld_to_use_stall) ? pc : pc + 1;
 
     // Fetch: PC+1
    assign o_cur_pc = pc;
+
+   wire we_decode = (ld_to_use_stall) ? 1'b0 : 1'b1;
 
    //______________________________D Pipeline Register___________________________________
 
    /// Register Values: PC
    wire [15:0] pc_D, next_pc_D, insn_D;
    wire [1:0]  stall_D; 
-   Nbit_reg #( 2, 2'd2)     D_stall_reg   (.in(in_stall),   .out(stall_D),  .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
-   Nbit_reg #(16, 16'h8200) D_pc_reg      (.in(o_cur_pc),   .out(pc_D),     .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
-   Nbit_reg #(16, 16'h0000) D_next_pc_reg (.in(next_pc),    .out(next_pc_D),.clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
-   Nbit_reg #(16, 16'h0000) D_insn_reg    (.in(i_cur_insn), .out(insn_D),   .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));   
+   Nbit_reg #( 2, 2'd2)     D_stall_reg   (.in(in_stall),   .out(stall_D),  .clk(clk), .we(we_decode), .gwe(gwe), .rst(rst));
+   Nbit_reg #(16, 16'h8200) D_pc_reg      (.in(o_cur_pc),   .out(pc_D),     .clk(clk), .we(we_decode), .gwe(gwe), .rst(rst));
+   Nbit_reg #(16, 16'h0000) D_next_pc_reg (.in(next_pc),    .out(next_pc_D),.clk(clk), .we(we_decode), .gwe(gwe), .rst(rst));
+   Nbit_reg #(16, 16'h0000) D_insn_reg    (.in(i_cur_insn), .out(insn_D),   .clk(clk), .we(we_decode), .gwe(gwe), .rst(rst));   
    
    //___________________________________DECODE___________________________________________
 
@@ -85,6 +85,15 @@ module lc4_processor
    // Data Decode
    wire [15:0] o_Rsdata, o_Rtdata, i_wdata;
 
+   // Load-To-Use Stall: If Execute is Load, and Decode uses that register, stall
+   wire is_load_X = ctrl_sign_X[3];
+   wire [2:0] wsel_X = regfile_data_X[3:1];
+   wire target_match = (wsel_X == r1sel) || ((wsel_X == r2sel) && !is_load);
+   wire ld_to_use_stall = (insn_X[15:9] == 7'd0) ? 1'b0 :
+                          (is_load_X && !is_store && target_match) ? 1'b1 : 1'b0;
+   wire [1:0] stall_D_S = (ld_to_use_stall) ? 2'b11 : stall_D;
+
+   // WIP
    /*
    wire irdwe;
    wire [2:0]  ird, r1select;
@@ -95,21 +104,35 @@ module lc4_processor
    assign iwdata  = i_wdata; 
    assign r1select = r1sel;
    */
+   // dmem_we_W, dmem_towrite_W, dmem_addr_W
+   /*
+   assign irdwe  = (insn_W[15:12] == 4'h4 | insn_W[15:12] == 4'hF) ? 1'b1 : rgfile_we_W;
+   assign ird    = (insn_W[15:12] == 4'h4 | insn_W[15:12] == 4'hF) ? 3'd7 : wselect_W;
+   assign iwdata = (insn_W[15:12] == 4'h4 | insn_W[15:12] == 4'hF) ? pc_plus_one : i_wdata;
+   */
+   
+   // Load: if is load W, set wsel = wSelW and i wdata to i curr, irdwe to 1
+   assign i_wdata = (is_ld_W == 1'b1) ? regInputMux : alu_W;
+   wire irdwe = (ld_to_use_stall) ? 1'b0 : 
+                (is_ld_W == 1'b1) ? 1'b1 : regfile_data_W[0];
 
+   // ********************** REGFILE
+   lc4_regfile #(.n(16)) register(.clk(clk), .rst(rst), .gwe(gwe),  .i_rs(r1sel),  .o_rs_data(o_Rsdata), .i_rt(r2sel),
+                                  .o_rt_data(o_Rtdata), .i_rd(regfile_data_W[3:1]), .i_wdata(i_wdata), .i_rd_we(irdwe));
+   
    /* r1re_D && regfile_we_W && (r1sel_D == wsel_W)   ->    pass regInputMux into o_Rsdata
       r2re_D && regfile_we_W && (r2sel_D == wsel_W)   ->    pass regInputMux into o_Rtdata
    */
-
    // WD Bypass   
    wire regfile_we_W_D = regfile_data_W[0];
    wire [2:0] wsel_W_D = regfile_data_W[3:1];
    wire [15:0] rsdata_D = (r1re && regfile_we_W_D && (r1sel == wsel_W_D)) ? regInputMux : o_Rsdata;
    wire [15:0] rtdata_D = (r2re && regfile_we_W_D && (r2sel == wsel_W_D)) ? regInputMux : o_Rtdata;
 
-   // ********************** REGFILE
-   lc4_regfile #(.n(16)) register(.clk(clk), .rst(rst), .gwe(gwe),  .i_rs(r1sel),  .o_rs_data(o_Rsdata), .i_rt(r2sel),
-                                  .o_rt_data(o_Rtdata), .i_rd(regfile_data_W[3:1]), .i_wdata(alu_W), .i_rd_we(regfile_data_W[0]));
-
+   // Load-To-Use Assigning
+   wire [15:0] insn_D_S = (ld_to_use_stall) ? nop_insn  : insn_D;
+   // wire [11:0] regfile_data_in_S = (ld_to_use_stall) ? 12'h000   : regfile_data_in;
+   // wire  [5:0] ctrl_sign_in_S =    (ld_to_use_stall) ? 6'b010010 : ctrl_sign_in;
 
    //______________________________X Pipeline Register___________________________________
 
@@ -118,13 +141,13 @@ module lc4_processor
    // nzp_we, select_pc_plus_one, is_load, is_store, is_branch, is_control_insn
 
    wire [1:0]  stall_X; 
-   Nbit_reg #( 2, 2'd2)     X_stall_reg (.in(stall_D),  .out(stall_X), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+   Nbit_reg #( 2, 2'd2)     X_stall_reg (.in(stall_D_S),  .out(stall_X), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
    wire [15:0] pc_X, next_pc_X, insn_X, rsdata_X, rtdata_X, wdata_X;
 
    Nbit_reg #(16, 16'h8200) X_pc_reg      (.in(pc_D),     .out(pc_X),     .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
    Nbit_reg #(16, 16'h0000) X_next_pc_reg (.in(next_pc_D),.out(next_pc_X),.clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
-   Nbit_reg #(16, 16'h0000) X_insn_reg    (.in(insn_D),   .out(insn_X),   .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+   Nbit_reg #(16, 16'h0000) X_insn_reg    (.in(insn_D_S), .out(insn_X),   .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
    Nbit_reg #(16, 16'h0000) X_rs_reg      (.in(rsdata_D), .out(rsdata_X), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
    Nbit_reg #(16, 16'h0000) X_rt_reg      (.in(rtdata_D), .out(rtdata_X), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
    Nbit_reg #(16, 16'h0000) X_wdata_reg   (.in(i_wdata),  .out(wdata_X),  .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
@@ -133,15 +156,11 @@ module lc4_processor
    // [11:9]    [8]      [7:5]     [4]      [3:1]    [0]
    wire [11:0] regfile_data_in = {r1sel,   r1re,   r2sel,   r2re,   wsel,   regfile_we};
    wire [11:0] regfile_data_X;
-   //  =  {r1sel_X, r1re_X, r2sel_X, r2re_X, wsel_X, regfile_we_X}
-
-   // Where rf stands for Register File
    Nbit_reg #(12, 12'd0) X_regfile_data_reg (.in(regfile_data_in), .out(regfile_data_X), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
-   wire nzp_we_X, select_pc_plus_one_X, is_load_X, is_store_X, is_branch_X, is_control_insn_X;
+   // wire nzp_we_X, select_pc_plus_one_X, is_load_X, is_store_X, is_branch_X, is_control_insn_X;
    wire [5:0] ctrl_sign_in = {nzp_we,   select_pc_plus_one,   is_load,   is_store,   is_branch,   is_control_insn};
-   wire [5:0] ctrl_sign_X =  {nzp_we_X, select_pc_plus_one_X, is_load_X, is_store_X, is_branch_X, is_control_insn_X};
-
+   wire [5:0] ctrl_sign_X;
    Nbit_reg #(6, 6'd0) X_ctrl_sign_reg (.in(ctrl_sign_in), .out(ctrl_sign_X), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
    
    //___________________________________EXECUTE__________________________________________
@@ -165,7 +184,7 @@ module lc4_processor
    wire regfile_we_M_B = regfile_data_M[0];
    wire regfile_we_W_B = regfile_data_W[0];
 
-   // change alu_W to regInputMux
+   // MX WX Bypass
    wire [15:0] rsdata = (r1re_B && regfile_we_M_B && (r1sel_B == wsel_M_B)) ? alu_M : 
                       //(r1re_B && regfile_we_M_B && (r1sel_B == r2sel_M_B)) ? i_cur_dmem_data : 
                         (r1re_B && regfile_we_W_B && (r1sel_B == wsel_W_B)) ? regInputMux : rsdata_X;
@@ -197,13 +216,9 @@ module lc4_processor
    Nbit_reg #(16, 16'h0000) M_wdata_reg   (.in(wdata_X),  .out(wdata_M),    .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
    wire [11:0] regfile_data_M;
-
-   // Where rf stands for Register File
    Nbit_reg #(12, 12'd0) M_regfile_data_reg (.in(regfile_data_X), .out(regfile_data_M), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
-   wire nzp_we_M, select_pc_plus_one_M, is_load_M, is_store_M, is_branch_M, is_control_insn_M;
-   wire [5:0] ctrl_sign_M = {nzp_we_M, select_pc_plus_one_M, is_load_M, is_store_M, is_branch_M, is_control_insn_M};
-
+   wire [5:0] ctrl_sign_M;
    Nbit_reg #(6, 6'd0) M_ctrl_sign_reg (.in(ctrl_sign_X), .out(ctrl_sign_M), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
    // New ALU
@@ -223,9 +238,9 @@ module lc4_processor
                            (regfile_data_M[3:1] == regfile_data_W[7:5])) ? dmem_towrite_W :
                            (is_ld_M  == 1'b1) ? i_cur_dmem_data :
                            (is_str_M == 1'b1) ? rtdata_M : 16'd0; // DMwe=is_sw on lecture
-   assign o_dmem_addr = (is_ld_M | is_str_M) ? alu_M : 16'd0;
+   assign o_dmem_addr =    (is_ld_M | is_str_M) ? alu_M : 16'd0;
 
-   
+   wire [1:0] stall_M_S = (stall_M == 2'b11) ? 2'b00 : stall_M; 
 
    //______________________________W Pipeline Register___________________________________
 
@@ -248,12 +263,9 @@ module lc4_processor
    Nbit_reg #(16, 16'h0000) W_wdata_reg   (.in(wdata_M),  .out(wdata_W),    .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
    wire [11:0] regfile_data_W;
-
    Nbit_reg #(12, 12'd0) W_regfile_data_reg (.in(regfile_data_M),  .out(regfile_data_W), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
-   wire nzp_we_W, select_pc_plus_one_W, is_load_W, is_store_W, is_branch_W, is_control_insn_W;
-   wire [5:0] ctrl_sign_W = {nzp_we_W, select_pc_plus_one_W, is_load_W, is_store_W, is_branch_W, is_control_insn_W};
-
+   wire [5:0] ctrl_sign_W;
    Nbit_reg #(6, 6'd0) W_ctrl_sign_reg (.in(ctrl_sign_M), .out(ctrl_sign_W), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
    wire [15:0] alu_W;
@@ -268,7 +280,7 @@ module lc4_processor
 
    //__________________________________WRITEBACK_________________________________________
 
-   // propagate next pc
+   // Next PC 
    wire is_ctrl_insn_W = ctrl_sign_W[0];
    wire is_br_W  = ctrl_sign_W[1];
    wire is_str_W = ctrl_sign_W[2];
@@ -280,10 +292,7 @@ module lc4_processor
    // if str, put o_Rt_Data into memory
    wire [15:0] selected_from_DM = (is_ld_W == 1'b1) ? dmem_towrite_W : alu_W;
    wire [15:0] regInputMux = (sel_pc_plus_one == 1'd1) ? next_pc_W : selected_from_DM;
-
-   // WIP
-   assign i_wdata = regInputMux;
-
+   
    // NZP Register
    wire [2:0] nzp;
    /*
@@ -291,7 +300,7 @@ module lc4_processor
                          ($signed(i_wdata) == 16'h0000) ? 3'b010 : 3'b001;
    */
    wire [2:0] next_nzp = ($signed(regInputMux) == 16'd0) ? 3'b010 :
-                         (regInputMux[15] ==  1'b1) ? 3'b100 : 3'b001;
+                         (regInputMux[15] ==  1'b1)      ? 3'b100 : 3'b001;
 
    // If CMP, CMPU, CMPI, CMPIU get ALU result
    // wire [2:0] nzp_mux = (i_cur_insn[15:12] == 4'b0010) ? alu_nzp : next_nzp;
@@ -316,7 +325,7 @@ module lc4_processor
 
    // If Branch that isn't NOP, add IMM9
    wire [15:0] b_in = (is_br_W & take_br)? s_ext_br : 16'd0;
-   cla16 cla_branch(.a(pc_W),.b(b_in),.cin(1'b1),.sum(pc_plus_one));   
+   cla16 cla_branch(.a(pc_W),.b(b_in),.cin(1'b1),.sum(pc_plus_one));
    
    // JSR & JSRR  -------------------------------------------------------------
    wire [15:0] s_ext_jsr = {insn_W[10], insn_W[10:0], 4'b0}; // JSR Sign Ext
@@ -338,13 +347,6 @@ module lc4_processor
 
    // Ctrl_Insn: JSR, JSRR, TRAP
    // R7 = PC + 1: i_rd_we enable(1), i_rd/wsel = 111, i_wdata pc+1
-
-   // WIP
-   /*
-   assign irdwe  = (insn_W[15:12] == 4'h4 | insn_W[15:12] == 4'hF) ? 1'b1 : rgfile_we_W;
-   assign ird    = (insn_W[15:12] == 4'h4 | insn_W[15:12] == 4'hF) ? 3'b111 : wselect_W;
-   assign iwdata = (insn_W[15:12] == 4'h4 | insn_W[15:12] == 4'hF) ? pc_plus_one : i_wdata;
-   */
 
    // RTI  --------------------------------------------------------------------
    wire[15:0] pc_rti = rsdata_W; // Selected to be Rs above
@@ -404,7 +406,15 @@ module lc4_processor
     */
 `ifndef NDEBUG
    always @(posedge gwe) begin
-      // $display("wsel %h", wsel);
+      // $display("Insn: %H", insn_W);
+      /*
+      if (ld_to_use_stall) begin
+         $display("Load insn: %H, Use insn: %H", insn_X, insn_D);
+         $display("Stall: %H, %H, %H", stall_M, stall_M_S, stall_W);
+      end
+      */
+      // $display("stall: %H, ld: %H, strX: %H, match: %H. Load insn: %H", 
+      // stall_D_2, is_load_X, is_store, target_match, insn_X);
       // if (o_dmem_we)
       //   $display("%d STORE %h <= %h", $time, o_dmem_addr, o_dmem_towrite);
 

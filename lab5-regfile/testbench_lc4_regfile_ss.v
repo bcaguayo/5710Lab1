@@ -10,6 +10,8 @@
 `define NEWLINE 10
 `define NULL 0
 
+`define GENERATE_VCD 0
+
 `define REGISTER_INPUT "test_lc4_regfile_ss.input"
 // `define REGISTER_OUTPUT "regfile_ss_test.output.txt"
 
@@ -78,6 +80,10 @@ module test_regfile;
    always #5 clk <= ~clk;
    
    initial begin
+      if (`GENERATE_VCD) begin
+         $dumpfile("regfile5.vcd");
+         $dumpvars;
+      end
       
       // Initialize Inputs
       rs_A = 0;
