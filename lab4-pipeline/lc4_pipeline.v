@@ -64,12 +64,14 @@ module lc4_processor
 
    wire we_decode = (ld_to_use_stall) ? 1'b0 : 1'b1;
 
+   wire stall_F = (ld_to_use_stall) ? 2'b10 : in_stall;
+
    //______________________________D Pipeline Register___________________________________
 
    /// Register Values: PC
    wire [15:0] pc_D, next_pc_D, insn_D;
    wire [1:0]  stall_D; 
-   Nbit_reg #( 2, 2'd2)     D_stall_reg   (.in(in_stall),   .out(stall_D),  .clk(clk), .we(we_decode), .gwe(gwe), .rst(rst));
+   Nbit_reg #( 2, 2'd2)     D_stall_reg   (.in(stall_F),   .out(stall_D),  .clk(clk), .we(we_decode), .gwe(gwe), .rst(rst));
    Nbit_reg #(16, 16'h8200) D_pc_reg      (.in(o_cur_pc),   .out(pc_D),     .clk(clk), .we(we_decode), .gwe(gwe), .rst(rst));
    Nbit_reg #(16, 16'h0000) D_next_pc_reg (.in(next_pc),    .out(next_pc_D),.clk(clk), .we(we_decode), .gwe(gwe), .rst(rst));
    Nbit_reg #(16, 16'h0000) D_insn_reg    (.in(i_cur_insn), .out(insn_D),   .clk(clk), .we(we_decode), .gwe(gwe), .rst(rst));   
